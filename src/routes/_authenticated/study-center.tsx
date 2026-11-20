@@ -2,10 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { myCoursesQuery } from "@/lib/queries";
 import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/_authenticated/study-center")({ component: Center });
 function Center() {
   const [search, setSearch] = useState("");
+  const classes = useQuery(myCoursesQuery);
+  const [course, setCourse] = useState("all");
   const [filter, setFilter] = useState("all");
   const q = useQuery({
     queryKey: ["study-center"],
@@ -26,6 +29,7 @@ function Center() {
   });
   const items = q.data?.filter(
     (x) =>
+      (course === "all" || x.course_id === course) &&
       (filter === "all" || x.type === filter) &&
       x.title.toLowerCase().includes(search.toLowerCase()),
   );
@@ -44,6 +48,19 @@ function Center() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
+          aria-label="Filter by class"
+          className="rounded-md border bg-background px-3"
+          value={course}
+          onChange={(e) => setCourse(e.target.value)}
+        >
+          <option value="all">All classes</option>
+          {classes.data?.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.course_name}
+            </option>
+          ))}
+        </select>
+        <select
           aria-label="Filter by type"
           className="rounded-md border bg-background px-3"
           value={filter}
@@ -59,7 +76,12 @@ function Center() {
         {q.isLoading ? (
           <p className="p-6">Loading library…</p>
         ) : q.isError ? (
-          <p className="p-6 text-destructive">Couldn't load the library.</p>
+          <p className="p-6 text-destructive">
+            Couldn't load the library.{" "}
+            <button className="underline" onClick={() => q.refetch()}>
+              Retry
+            </button>
+          </p>
         ) : !items?.length ? (
           <p className="p-6 text-muted-foreground">No materials found.</p>
         ) : (

@@ -30,14 +30,18 @@ export function EligibilityGate({ me, children }: { me: Me | undefined; children
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-electric-soft text-electric">
         {rejected ? <ShieldX className="h-8 w-8" /> : <Clock className="h-8 w-8" />}
       </div>
-      <h1 className="mt-6 text-2xl font-bold">{rejected ? "We couldn't confirm your eligibility" : "Your account is waiting for approval"}</h1>
+      <h1 className="mt-6 text-2xl font-bold">
+        {rejected ? "We couldn't confirm your eligibility" : "Your account is waiting for approval"}
+      </h1>
       <p className="mt-3 text-muted-foreground">
         {rejected
           ? "ClassPilot AI is only available to current WDMCS students in grades 7–12. If you think this is a mistake, contact your ClassPilot administrator."
           : "An administrator is confirming that you're a current WDMCS student in grades 7–12. You'll get full access as soon as you're approved."}
       </p>
       {me.profile?.eligibility_note && (
-        <p className="mt-4 rounded-xl bg-muted p-3 text-sm text-muted-foreground">Note from admin: {me.profile.eligibility_note}</p>
+        <p className="mt-4 rounded-xl bg-muted p-3 text-sm text-muted-foreground">
+          Note from admin: {me.profile.eligibility_note}
+        </p>
       )}
       <Button variant="outline" className="mt-8" onClick={() => supabase.auth.signOut()}>
         Sign out

@@ -25,7 +25,7 @@ async function run<T>(fn: () => Promise<T>): Promise<Ok<T>> {
   try {
     return { ok: true, data: await fn() };
   } catch (error) {
-    console.error(error);
+    console.error("Study material request failed");
     return { ok: false, error: safeMessage(error) };
   }
 }
@@ -34,7 +34,9 @@ async function run<T>(fn: () => Promise<T>): Promise<Ok<T>> {
 export const improveNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { html: string; courseId: string | null }) =>
-    z.object({ html: z.string().min(1).max(200_000), courseId: z.string().uuid().nullable() }).parse(input),
+    z
+      .object({ html: z.string().min(1).max(200_000), courseId: z.string().uuid().nullable() })
+      .parse(input),
   )
   .handler(async ({ data, context }) =>
     run(async () => {
@@ -44,10 +46,13 @@ export const improveNotes = createServerFn({ method: "POST" })
       const out = await aiStructured<{ html: string; changes: string[] }>({
         instructions: `You are ClassPilot AI, a careful study assistant for a WDMCS student. ${gradeGuidance(profile?.grade)}
 Improve the student's class notes: fix spelling and grammar, organize information logically, add meaningful <h2>/<h3> headings, use bullet or numbered lists where helpful, wrap key definitions as <p><strong>Term</strong>: definition</p>, and highlight the most important concepts with <mark>. Preserve the original meaning and all facts; do not add new content beyond brief clarifying headings. Output clean HTML using only: h2, h3, p, ul, ol, li, strong, em, mark, blockquote, code. Also list the main changes you made in plain language (max 8).`,
-        messages: [{ role: "user", content: `Class: ${course ?? "General"}\n\nNotes (HTML):\n${text}` }],
+        messages: [
+          { role: "user", content: `Class: ${course ?? "General"}\n\nNotes (HTML):\n${text}` },
+        ],
         schema: obj({ html: str("Improved notes as HTML"), changes: arr(str()) }),
       });
-      if (!out.html?.trim()) throw new AiError("The AI returned empty notes. Your original notes are unchanged.", 502);
+      if (!out.html?.trim())
+        throw new AiError("The AI returned empty notes. Your original notes are unchanged.", 502);
       return { html: out.html, changes: (out.changes ?? []).slice(0, 8) };
     }),
   );
@@ -67,19 +72,23 @@ export type StudyGuideContent = {
   summary: string;
 };
 
-const studyGuideSchema = obj({
-  title: str(),
-  overview: str(),
-  important_concepts: arr(obj({ name: str(), explanation: str() })),
-  key_definitions: arr(obj({ term: str(), definition: str() })),
-  detailed_explanations: arr(obj({ heading: str(), body: str() })),
-  step_by_step_examples: arr(obj({ title: str(), steps: arr(str()), answer: str() })),
-  formulas: arr(obj({ name: str(), formula: str(), when_to_use: str() }), "Empty array when the subject has no formulas"),
-  common_mistakes: arr(obj({ mistake: str(), fix: str() })),
-  things_to_memorize: arr(str()),
-  review_questions: arr(obj({ question: str(), answer: str() })),
-  summary: str(),
-});
+const studyGuideSchema = () =>
+  obj({
+    title: str(),
+    overview: str(),
+    important_concepts: arr(obj({ name: str(), explanation: str() })),
+    key_definitions: arr(obj({ term: str(), definition: str() })),
+    detailed_explanations: arr(obj({ heading: str(), body: str() })),
+    step_by_step_examples: arr(obj({ title: str(), steps: arr(str()), answer: str() })),
+    formulas: arr(
+      obj({ name: str(), formula: str(), when_to_use: str() }),
+      "Empty array when the subject has no formulas",
+    ),
+    common_mistakes: arr(obj({ mistake: str(), fix: str() })),
+    things_to_memorize: arr(str()),
+    review_questions: arr(obj({ question: str(), answer: str() })),
+    summary: str(),
+  });
 
 async function buildStudyGuide(
   supabase: Parameters<typeof prepareAiRequest>[0],
@@ -87,16 +96,26 @@ async function buildStudyGuide(
   noteId: string,
 ) {
   const { profile } = await prepareAiRequest(supabase, userId, "study_guide");
-  const { data: note, error } = await supabase.from("notes").select("*").eq("id", noteId).maybeSingle();
+  const { data: note, error } = await supabase
+    .from("notes")
+    .select("*")
+    .eq("id", noteId)
+    .maybeSingle();
   if (error || !note) throw new AiError("Note not found.", 404);
   const text = (note.content_text || htmlToText(note.content)).slice(0, MAX_NOTE_CHARS);
-  if (text.length < 20) throw new AiError("Add a bit more to this note before generating a study guide.", 400);
+  if (text.length < 20)
+    throw new AiError("Add a bit more to this note before generating a study guide.", 400);
   const course = await courseName(supabase, note.course_id);
   const guide = await aiStructured<StudyGuideContent>({
     instructions: `You are ClassPilot AI. Create a complete, well-organized study guide from the student's notes. ${gradeGuidance(profile?.grade)} ${TRUST}
 Include 3-8 important concepts, key definitions, detailed explanations, 1-4 step-by-step examples, formulas only when applicable (else empty array), 3-6 common mistakes, things to memorize, 5-10 review questions with answers, and a short summary.`,
-    messages: [{ role: "user", content: `Class: ${course ?? "General"}\nNote title: ${note.title}\nTopic: ${note.topic ?? ""}\n\nNotes:\n${text}` }],
-    schema: studyGuideSchema,
+    messages: [
+      {
+        role: "user",
+        content: `Class: ${course ?? "General"}\nNote title: ${note.title}\nTopic: ${note.topic ?? ""}\n\nNotes:\n${text}`,
+      },
+    ],
+    schema: studyGuideSchema(),
     effort: "medium",
   });
   return { guide, note };
@@ -104,7 +123,9 @@ Include 3-8 important concepts, key definitions, detailed explanations, 1-4 step
 
 export const generateStudyGuide = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { noteId: string }) => z.object({ noteId: z.string().uuid() }).parse(input))
+  .inputValidator((input: { noteId: string }) =>
+    z.object({ noteId: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) =>
     run(async () => {
       const { guide, note } = await buildStudyGuide(context.supabase, context.userId, data.noteId);
@@ -127,11 +148,18 @@ export const generateStudyGuide = createServerFn({ method: "POST" })
 
 export const regenerateStudyGuide = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { studyGuideId: string }) => z.object({ studyGuideId: z.string().uuid() }).parse(input))
+  .inputValidator((input: { studyGuideId: string }) =>
+    z.object({ studyGuideId: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) =>
     run(async () => {
-      const { data: sg } = await context.supabase.from("study_guides").select("id, note_id").eq("id", data.studyGuideId).maybeSingle();
-      if (!sg?.note_id) throw new AiError("The original note for this study guide no longer exists.", 404);
+      const { data: sg } = await context.supabase
+        .from("study_guides")
+        .select("id, note_id")
+        .eq("id", data.studyGuideId)
+        .maybeSingle();
+      if (!sg?.note_id)
+        throw new AiError("The original note for this study guide no longer exists.", 404);
       const { guide } = await buildStudyGuide(context.supabase, context.userId, sg.note_id);
       const { error } = await context.supabase
         .from("study_guides")
@@ -143,16 +171,17 @@ export const regenerateStudyGuide = createServerFn({ method: "POST" })
   );
 
 // ---------------- Worksheets & practice tests ----------------
-const questionSchema = obj({
-  type: enm([...QUESTION_TYPES]),
-  prompt: str(),
-  options: narr(str()),
-  correct_answer: nstr(),
-  matching_pairs: narr(obj({ left: str(), right: str() })),
-  explanation: str(),
-  topic: str(),
-  difficulty: enm(["easy", "medium", "hard"]),
-});
+const questionSchema = () =>
+  obj({
+    type: enm([...QUESTION_TYPES]),
+    prompt: str(),
+    options: narr(str()),
+    correct_answer: nstr(),
+    matching_pairs: narr(obj({ left: str(), right: str() })),
+    explanation: str(),
+    topic: str(),
+    difficulty: enm(["easy", "medium", "hard"]),
+  });
 
 const practiceInput = z.object({
   kind: z.enum(["worksheet", "quiz"]),
@@ -174,8 +203,13 @@ export const generatePractice = createServerFn({ method: "POST" })
       const course = await courseName(context.supabase, data.courseId);
       let material = "";
       if (data.noteId) {
-        const { data: note } = await context.supabase.from("notes").select("title, content, content_text").eq("id", data.noteId).maybeSingle();
-        if (note) material = `Note "${note.title}":\n${(note.content_text || htmlToText(note.content)).slice(0, MAX_NOTE_CHARS)}`;
+        const { data: note } = await context.supabase
+          .from("notes")
+          .select("title, content, content_text")
+          .eq("id", data.noteId)
+          .maybeSingle();
+        if (note)
+          material = `Note "${note.title}":\n${(note.content_text || htmlToText(note.content)).slice(0, MAX_NOTE_CHARS)}`;
       } else {
         const { data: notes } = await context.supabase
           .from("notes")
@@ -183,7 +217,12 @@ export const generatePractice = createServerFn({ method: "POST" })
           .eq("course_id", data.courseId)
           .order("updated_at", { ascending: false })
           .limit(6);
-        material = (notes ?? []).map((n) => `Note "${n.title}"${n.topic ? ` (${n.topic})` : ""}:\n${n.content_text.slice(0, 6000)}`).join("\n\n");
+        material = (notes ?? [])
+          .map(
+            (n) =>
+              `Note "${n.title}"${n.topic ? ` (${n.topic})` : ""}:\n${n.content_text.slice(0, 6000)}`,
+          )
+          .join("\n\n");
       }
       const out = await aiStructured<{ title: string; questions: Omit<Question, "id">[] }>({
         instructions: `You are ClassPilot AI. Write a ${data.kind === "quiz" ? "practice test" : "practice worksheet"} for the student. ${gradeGuidance(profile?.grade)} ${TRUST}
@@ -200,7 +239,7 @@ Set unused fields to null. Each question gets a short topic label and an explana
             content: `Class: ${course ?? "General"}\nTopic focus: ${data.topic ?? "the student's recent notes"}\n\n${material ? `Student notes:\n${material}` : "The student has no notes yet for this class; use standard grade-appropriate curriculum for the topic."}`,
           },
         ],
-        schema: obj({ title: str(), questions: arr(questionSchema) }),
+        schema: obj({ title: str(), questions: arr(questionSchema()) }),
         effort: "medium",
       });
       const questions: Question[] = (out.questions ?? []).slice(0, data.count).map((q, i) => ({
@@ -208,7 +247,8 @@ Set unused fields to null. Each question gets a short topic label and an explana
         id: `q${i + 1}`,
         options: q.type === "true_false" ? ["True", "False"] : q.options,
       }));
-      if (!questions.length) throw new AiError("The AI didn't return any questions. Please try again.", 502);
+      if (!questions.length)
+        throw new AiError("The AI didn't return any questions. Please try again.", 502);
       const table = data.kind === "quiz" ? "quizzes" : "worksheets";
       const { data: row, error } = await context.supabase
         .from(table)
@@ -216,7 +256,10 @@ Set unused fields to null. Each question gets a short topic label and an explana
           student_id: context.userId,
           course_id: data.courseId,
           note_id: data.noteId,
-          title: data.title?.trim() || out.title || `${data.topic ?? "Practice"} ${data.kind === "quiz" ? "Test" : "Worksheet"}`,
+          title:
+            data.title?.trim() ||
+            out.title ||
+            `${data.topic ?? "Practice"} ${data.kind === "quiz" ? "Test" : "Worksheet"}`,
           topic: data.topic,
           difficulty: data.difficulty,
           questions: questions as unknown as Json,
@@ -242,7 +285,11 @@ export const gradePractice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) =>
     run(async () => {
       const table = data.kind === "quiz" ? "quizzes" : "worksheets";
-      const { data: row } = await context.supabase.from(table).select("*").eq("id", data.id).maybeSingle();
+      const { data: row } = await context.supabase
+        .from(table)
+        .select("*")
+        .eq("id", data.id)
+        .maybeSingle();
       if (!row) throw new AiError("Practice set not found.", 404);
       const questions = row.questions as unknown as Question[];
       const results: QuestionResult[] = [];
@@ -252,19 +299,37 @@ export const gradePractice = createServerFn({ method: "POST" })
         if (r) results.push(r);
         else subjective.push(q);
       }
-      const answered = subjective.filter((q) => typeof data.answers[q.id] === "string" && (data.answers[q.id] as string).trim());
+      const answered = subjective.filter(
+        (q) => typeof data.answers[q.id] === "string" && (data.answers[q.id] as string).trim(),
+      );
       for (const q of subjective.filter((q) => !answered.includes(q))) {
-        results.push({ id: q.id, correct: false, score: 0, feedback: "No answer given.", correct_answer_display: q.correct_answer ?? "", ai_graded: false });
+        results.push({
+          id: q.id,
+          correct: false,
+          score: 0,
+          feedback: "No answer given.",
+          correct_answer_display: q.correct_answer ?? "",
+          ai_graded: false,
+        });
       }
       if (answered.length) {
-        const { profile } = await prepareAiRequest(context.supabase, context.userId, "grade_written");
-        const graded = await aiStructured<{ grades: { id: string; score: number; feedback: string }[] }>({
+        const { profile } = await prepareAiRequest(
+          context.supabase,
+          context.userId,
+          "grade_written",
+        );
+        const graded = await aiStructured<{
+          grades: { id: string; score: number; feedback: string }[];
+        }>({
           instructions: `You are a fair, encouraging tutor giving practice feedback (not an official school grade). ${gradeGuidance(profile?.grade)} For each answer give score 0, 0.5 or 1 compared with the model answer, and 1-3 sentences of specific feedback explaining what was right and what to improve.`,
           messages: [
             {
               role: "user",
               content: answered
-                .map((q) => `ID: ${q.id}\nQuestion: ${q.prompt}\nModel answer: ${q.correct_answer}\nStudent answer: ${data.answers[q.id]}`)
+                .map(
+                  (q) =>
+                    `ID: ${q.id}\nQuestion: ${q.prompt}\nModel answer: ${q.correct_answer}\nStudent answer: ${data.answers[q.id]}`,
+                )
                 .join("\n\n---\n\n"),
             },
           ],
@@ -272,7 +337,12 @@ export const gradePractice = createServerFn({ method: "POST" })
         });
         for (const q of answered) {
           const g = graded.grades?.find((x) => x.id === q.id);
-          const score = Math.max(0, Math.min(1, g?.score ?? 0));
+          if (!g || ![0, 0.5, 1].includes(g.score))
+            throw new AiError(
+              "Incomplete grading response. Please retry; this attempt was not saved.",
+              502,
+            );
+          const score = g.score;
           results.push({
             id: q.id,
             correct: score >= 1,
@@ -292,26 +362,35 @@ export const gradePractice = createServerFn({ method: "POST" })
           score: summary.percent,
           completed_at: new Date().toISOString(),
         })
-        .eq("id", row.id);
+        .eq("id", row.id)
+        .select("id")
+        .single();
       if (error) throw new AiError("Couldn't save your results.", 500);
       return summary;
     }),
   );
 
 // ---------------- Flashcards ----------------
-export type Flashcard = { id: string; front: string; back: string; difficult: boolean; learned: boolean };
+export type Flashcard = {
+  id: string;
+  front: string;
+  back: string;
+  difficult: boolean;
+  learned: boolean;
+};
 
 export const generateFlashcards = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { courseId: string; noteId: string | null; topic: string | null; count: number }) =>
-    z
-      .object({
-        courseId: z.string().uuid(),
-        noteId: z.string().uuid().nullable(),
-        topic: z.string().max(200).nullable(),
-        count: z.number().int().min(4).max(40),
-      })
-      .parse(input),
+  .inputValidator(
+    (input: { courseId: string; noteId: string | null; topic: string | null; count: number }) =>
+      z
+        .object({
+          courseId: z.string().uuid(),
+          noteId: z.string().uuid().nullable(),
+          topic: z.string().max(200).nullable(),
+          count: z.number().int().min(4).max(40),
+        })
+        .parse(input),
   )
   .handler(async ({ data, context }) =>
     run(async () => {
@@ -320,7 +399,11 @@ export const generateFlashcards = createServerFn({ method: "POST" })
       let material = "";
       let noteTitle: string | null = null;
       if (data.noteId) {
-        const { data: note } = await context.supabase.from("notes").select("title, content, content_text, topic").eq("id", data.noteId).maybeSingle();
+        const { data: note } = await context.supabase
+          .from("notes")
+          .select("title, content, content_text, topic")
+          .eq("id", data.noteId)
+          .maybeSingle();
         if (note) {
           noteTitle = note.title;
           material = (note.content_text || htmlToText(note.content)).slice(0, MAX_NOTE_CHARS);
@@ -332,7 +415,9 @@ export const generateFlashcards = createServerFn({ method: "POST" })
           .eq("course_id", data.courseId)
           .order("updated_at", { ascending: false })
           .limit(6);
-        material = (notes ?? []).map((n) => `${n.title}:\n${n.content_text.slice(0, 6000)}`).join("\n\n");
+        material = (notes ?? [])
+          .map((n) => `${n.title}:\n${n.content_text.slice(0, 6000)}`)
+          .join("\n\n");
       }
       const out = await aiStructured<{ title: string; cards: { front: string; back: string }[] }>({
         instructions: `You are ClassPilot AI. Create exactly ${data.count} question-and-answer flashcards. ${gradeGuidance(profile?.grade)} ${TRUST} Front: a clear question or term. Back: a concise, accurate answer (1-3 sentences).`,
@@ -344,8 +429,15 @@ export const generateFlashcards = createServerFn({ method: "POST" })
         ],
         schema: obj({ title: str(), cards: arr(obj({ front: str(), back: str() })) }),
       });
-      const cards: Flashcard[] = (out.cards ?? []).slice(0, data.count).map((c, i) => ({ id: `c${i + 1}`, front: c.front, back: c.back, difficult: false, learned: false }));
-      if (!cards.length) throw new AiError("The AI didn't return any flashcards. Please try again.", 502);
+      const cards: Flashcard[] = (out.cards ?? []).slice(0, data.count).map((c, i) => ({
+        id: `c${i + 1}`,
+        front: c.front,
+        back: c.back,
+        difficult: false,
+        learned: false,
+      }));
+      if (!cards.length)
+        throw new AiError("The AI didn't return any flashcards. Please try again.", 502);
       const { data: row, error } = await context.supabase
         .from("flashcards")
         .insert({
@@ -366,18 +458,33 @@ export const generateFlashcards = createServerFn({ method: "POST" })
 // ---------------- Recording -> Notes ----------------
 export const recordingToNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { recordingId: string }) => z.object({ recordingId: z.string().uuid() }).parse(input))
+  .inputValidator((input: { recordingId: string }) =>
+    z.object({ recordingId: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) =>
     run(async () => {
-      const { data: rec } = await context.supabase.from("recordings").select("*").eq("id", data.recordingId).maybeSingle();
+      const { data: rec } = await context.supabase
+        .from("recordings")
+        .select("*")
+        .eq("id", data.recordingId)
+        .maybeSingle();
       if (!rec) throw new AiError("Recording not found.", 404);
       if (!rec.transcript?.trim()) throw new AiError("Transcribe the recording first.", 400);
-      const { profile } = await prepareAiRequest(context.supabase, context.userId, "recording_notes");
+      const { profile } = await prepareAiRequest(
+        context.supabase,
+        context.userId,
+        "recording_notes",
+      );
       const course = await courseName(context.supabase, rec.course_id);
       const out = await aiStructured<{ title: string; topic: string; html: string }>({
         instructions: `You are ClassPilot AI. Turn a lesson transcript into organized class notes. ${gradeGuidance(profile?.grade)} ${TRUST}
 Organize the transcript; identify important topics, definitions, examples and key concepts. Output HTML using only h2, h3, p, ul, ol, li, strong, em, mark, blockquote. Structure: a short overview paragraph, then sections with headings, a "Key Definitions" section (<p><strong>Term</strong>: definition</p>), an "Examples" section, and a "Key Concepts to Remember" bullet list. Ignore off-topic chatter.`,
-        messages: [{ role: "user", content: `Class: ${course ?? "General"}\nRecording: ${rec.title}\n\nTranscript:\n${rec.transcript.slice(0, 60_000)}` }],
+        messages: [
+          {
+            role: "user",
+            content: `Class: ${course ?? "General"}\nRecording: ${rec.title}\n\nTranscript:\n${rec.transcript.slice(0, 60_000)}`,
+          },
+        ],
         schema: obj({ title: str(), topic: str(), html: str() }),
         effort: "medium",
       });
@@ -403,27 +510,48 @@ Organize the transcript; identify important topics, definitions, examples and ke
 export const extractDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { path: string; mimeType: string; fileName: string }) =>
-    z.object({ path: z.string().min(3).max(500), mimeType: z.string().max(100), fileName: z.string().max(300) }).parse(input),
+    z
+      .object({
+        path: z.string().min(3).max(500),
+        mimeType: z.string().max(100),
+        fileName: z.string().max(300),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) =>
     run(async () => {
       if (!data.path.startsWith(`${context.userId}/`)) throw new AiError("Not allowed.", 403);
       const isPdf = data.mimeType === "application/pdf";
       const isImage = data.mimeType.startsWith("image/");
-      if (!isPdf && !isImage) throw new AiError("Only PDFs and images can be read by AI here.", 400);
-      const { profile } = await prepareAiRequest(context.supabase, context.userId, "extract_document");
-      const { data: blob, error } = await context.supabase.storage.from("uploads").download(data.path);
+      if (!isPdf && !isImage)
+        throw new AiError("Only PDFs and images can be read by AI here.", 400);
+      const { profile } = await prepareAiRequest(
+        context.supabase,
+        context.userId,
+        "extract_document",
+      );
+      const { data: blob, error } = await context.supabase.storage
+        .from("uploads")
+        .download(data.path);
       if (error || !blob) throw new AiError("Couldn't open the uploaded file.", 404);
       const bytes = new Uint8Array(await blob.arrayBuffer());
       let binary = "";
-      for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      for (let i = 0; i < bytes.length; i += 0x8000)
+        binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
       const base64 = btoa(binary);
       const part = isPdf
-        ? ({ type: "file", data: base64, mediaType: "application/pdf", filename: data.fileName } as const)
+        ? ({
+            type: "file",
+            data: base64,
+            mediaType: "application/pdf",
+            filename: data.fileName,
+          } as const)
         : ({ type: "image", image: new URL(`data:${data.mimeType};base64,${base64}`) } as const);
       const out = await aiStructured<{ title: string; html: string }>({
         instructions: `You read class documents, worksheets and photos of handwritten notes for a student. ${gradeGuidance(profile?.grade)} Transcribe the content faithfully into clean HTML (h2, h3, p, ul, ol, li, strong, em, table, tr, th, td). Keep math readable in plain text (e.g. y = mx + b). Do not solve worksheet problems or add content that isn't there. If parts are illegible, write [illegible].`,
-        messages: [{ role: "user", content: [{ type: "text", text: `File: ${data.fileName}` }, part] }],
+        messages: [
+          { role: "user", content: [{ type: "text", text: `File: ${data.fileName}` }, part] },
+        ],
         schema: obj({ title: str(), html: str() }),
       });
       return { title: out.title, html: out.html };

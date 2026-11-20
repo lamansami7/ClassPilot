@@ -1,3 +1,5 @@
+import { useServerFn } from "@tanstack/react-start";
+import { deleteMyAccount } from "@/lib/account.functions";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -10,6 +12,8 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/settings")({ component: Settings });
 function Settings() {
   const { data: me } = useQuery(meQuery);
+  const deleteAccount = useServerFn(deleteMyAccount);
+  const [confirmation, setConfirmation] = useState("");
   const qc = useQueryClient();
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
@@ -37,6 +41,68 @@ function Settings() {
       toast.success("Profile updated");
     } catch {
       toast.error("Couldn't update profile.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function exportWork() {
+    if (
+      !me ||
+      !confirm(
+        "This download contains private schoolwork. Save it only on a trusted device. Continue?",
+      )
+    )
+      return;
+    setBusy(true);
+    try {
+      const records: Record<string, unknown[]> = {};
+      for (const table of [
+        "student_courses",
+        "folders",
+        "notes",
+        "study_guides",
+        "worksheets",
+        "quizzes",
+        "flashcards",
+        "tutor_threads",
+        "tutor_messages",
+        "saved_resources",
+        "recordings",
+      ] as const) {
+        const rows: unknown[] = [];
+        for (let offset = 0; ; offset += 250) {
+          const { data, error } = await supabase
+            .from(table)
+            .select("*")
+            .eq("student_id", me.userId)
+            .order("id")
+            .range(offset, offset + 249);
+          if (error) throw error;
+          rows.push(...data);
+          if (data.length < 250) break;
+        }
+        records[table] = rows;
+      }
+      const url = URL.createObjectURL(
+        new Blob(
+          [
+            JSON.stringify(
+              { exportedAt: new Date().toISOString(), profile: me.profile, records },
+              null,
+              2,
+            ),
+          ],
+          { type: "application/json" },
+        ),
+      );
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "classpilot-study-data.json";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success("Export ready");
+    } catch {
+      toast.error("Export failed. No partial file was downloaded.");
     } finally {
       setBusy(false);
     }
@@ -132,8 +198,47 @@ function Settings() {
         <h2 className="text-lg font-semibold">Privacy</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Your study materials are private to your account. Contact the administrator for account
-          and data deletion requests.
+          and data deletion requests. Export includes profile, saved study data and recording
+          metadata, not audio files.
         </p>
+        <Button className="mt-4" variant="outline" disabled={busy} onClick={exportWork}>
+          Download my study data
+        </Button>
+      </section>
+      <section className="space-y-3 rounded-xl border bg-card p-6">
+        <h2 className="font-semibold">Permanently delete account</h2>
+        <p className="text-sm">
+          Download anything you want to keep first. Deletion removes your files and study materials
+          and cannot be undone. Recent password sign-in is required.
+        </p>
+        <label className="block text-sm">
+          Type DELETE to confirm
+          <Input value={confirmation} onChange={(e) => setConfirmation(e.target.value)} />
+        </label>
+        <Button
+          variant="destructive"
+          disabled={busy || confirmation !== "DELETE"}
+          onClick={async () => {
+            if (!confirm("Permanently delete this account and its files?")) return;
+            setBusy(true);
+            try {
+              const result = await deleteAccount();
+              if (!result.ok) {
+                toast.error(result.error);
+                return;
+              }
+              qc.clear();
+              await supabase.auth.signOut({ scope: "local" });
+              window.location.assign("/");
+            } catch {
+              toast.error("Could not complete deletion. Contact support before retrying.");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          Delete my account
+        </Button>
       </section>
     </div>
   );

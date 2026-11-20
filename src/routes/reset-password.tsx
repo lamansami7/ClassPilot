@@ -55,16 +55,30 @@ function ResetPage() {
     <AuthLayout>
       <h1 className="text-3xl font-bold text-navy">Choose a new password</h1>
       {!ready ? (
-        <p className="mt-3 text-muted-foreground">Open this page from the reset link in your email.</p>
+        <p className="mt-3 text-muted-foreground">
+          Open this page from the reset link in your email.
+        </p>
       ) : (
         <form onSubmit={submit} className="mt-8 space-y-5">
           <div className="space-y-2">
             <Label htmlFor="pw">New password</Label>
-            <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-11" />
+            <Input
+              id="pw"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-11"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="pw2">Confirm password</Label>
-            <Input id="pw2" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} className="h-11" />
+            <Input
+              id="pw2"
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              className="h-11"
+            />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" variant="hero" size="xl" className="w-full" disabled={loading}>

@@ -71,7 +71,10 @@ function Recordings() {
     setBusy(true);
     try {
       const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-      if (!mounted.current) { s.getTracks().forEach((t) => t.stop()); return; }
+      if (!mounted.current) {
+        s.getTracks().forEach((t) => t.stop());
+        return;
+      }
       stream.current = s;
       const r = new MediaRecorder(s);
       chunks.current = [];
@@ -85,6 +88,7 @@ function Recordings() {
         s.getTracks().forEach((t) => t.stop());
         if (!mounted.current) return;
         setBlob(new Blob(chunks.current, { type: r.mimeType || "audio/webm" }));
+        chunks.current = [];
         setStatus("stopped");
       };
       r.onerror = () => toast.error("Recording failed; check microphone permissions.");
@@ -96,9 +100,11 @@ function Recordings() {
       startTime.current = Date.now();
       setStatus("recording");
     } catch {
-      stream.current?.getTracks().forEach(t => t.stop());
+      stream.current?.getTracks().forEach((t) => t.stop());
       toast.error("Couldn't access the microphone. Check your browser permissions.");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
   function pause() {
     if (recorder.current?.state !== "recording") return;
@@ -125,7 +131,12 @@ function Recordings() {
     setBusy(true);
     try {
       const user = await currentUserId();
-      const path = `${user}/${crypto.randomUUID()}.webm`;
+      const extension = blob.type.includes("mp4")
+        ? "mp4"
+        : blob.type.includes("ogg")
+          ? "ogg"
+          : "webm";
+      const path = `${user}/${crypto.randomUUID()}.${extension}`;
       const { error: uploadError } = await supabase.storage
         .from("recordings")
         .upload(path, blob, { contentType: blob.type || "audio/webm" });
@@ -186,30 +197,63 @@ function Recordings() {
     }
   }
   async function transcribe(id: string, path: string) {
-    if (!confirm("Send this recording to the AI service for transcription? Only continue with permission.")) return;
+    if (
+      !confirm(
+        "Send this recording to the AI service for transcription? Only continue with permission.",
+      )
+    )
+      return;
     setBusy(true);
     try {
-      const {data: audio, error} = await supabase.storage.from("recordings").download(path);
+      const { data: audio, error } = await supabase.storage.from("recordings").download(path);
       if (error || !audio) throw Error();
-      const {data} = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getSession();
       if (!data.session) throw Error();
-      const form = new FormData(); form.append("file", audio, path.split("/").pop());
-      const res = await fetch("/api/transcribe", {method:"POST", headers:{Authorization:`Bearer ${data.session.access_token}`}, body:form});
+      const form = new FormData();
+      form.append("file", audio, path.split("/").pop());
+      const res = await fetch("/api/transcribe", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${data.session.access_token}` },
+        body: form,
+      });
       const payload = await res.json();
-      if (!res.ok || typeof payload.text !== 'string' || !payload.text.trim()) throw Error();
-      const result = await supabase.from("recordings").update({ transcript:payload.text }).eq("id",id).select('id').single();
-      if(result.error) throw result.error;
-      await qc.invalidateQueries({queryKey:['recordings']}); toast.success('Transcript saved. Review it for accuracy.');
-    } catch {toast.error('Transcription failed. Your recording is unchanged.');} finally {setBusy(false);}
+      if (!res.ok || typeof payload.text !== "string" || !payload.text.trim()) throw Error();
+      const result = await supabase
+        .from("recordings")
+        .update({ transcript: payload.text })
+        .eq("id", id)
+        .select("id")
+        .single();
+      if (result.error) throw result.error;
+      await qc.invalidateQueries({ queryKey: ["recordings"] });
+      toast.success("Transcript saved. Review it for accuracy.");
+    } catch {
+      toast.error("Transcription failed. Your recording is unchanged.");
+    } finally {
+      setBusy(false);
+    }
   }
-  async function transcriptNote( courseId: string | null, name: string, transcript: string) {
+  async function transcriptNote(courseId: string | null, name: string, transcript: string) {
     setBusy(true);
     try {
-      const {error} = await supabase.from('notes').insert({student_id:await currentUserId(),course_id:courseId,title:name,topic:'Recording transcript',content:transcript,content_text:transcript});
-      if(error) throw error;
-      await Promise.all(['notes','my-courses','study-center'].map(k=>qc.invalidateQueries({queryKey:[k]})));
-      toast.success('Transcript copied to My Notes. Review it before generating study materials.');
-    } catch {toast.error('Could not create a note. Your transcript is unchanged.');} finally {setBusy(false);}
+      const { error } = await supabase.from("notes").insert({
+        student_id: await currentUserId(),
+        course_id: courseId,
+        title: name,
+        topic: "Recording transcript",
+        content: transcript,
+        content_text: transcript,
+      });
+      if (error) throw error;
+      await Promise.all(
+        ["notes", "my-courses", "study-center"].map((k) => qc.invalidateQueries({ queryKey: [k] })),
+      );
+      toast.success("Transcript copied to My Notes. Review it before generating study materials.");
+    } catch {
+      toast.error("Could not create a note. Your transcript is unchanged.");
+    } finally {
+      setBusy(false);
+    }
   }
   async function rename(id: string, old: string) {
     const name = prompt("Recording name", old);
@@ -236,7 +280,11 @@ function Recordings() {
         <p className="font-display text-3xl font-bold">{time}</p>
         <p className="text-sm capitalize">{status}</p>
         <div className="flex flex-wrap gap-2">
-          {status === "idle" && <Button disabled={busy} onClick={start}>Start recording</Button>}
+          {status === "idle" && (
+            <Button disabled={busy} onClick={start}>
+              Start recording
+            </Button>
+          )}
           {status === "recording" && (
             <Button variant="outline" onClick={pause}>
               Pause
@@ -274,6 +322,21 @@ function Recordings() {
                 ))}
               </select>
             </label>
+            <Button
+              variant="outline"
+              disabled={!blob || busy}
+              onClick={() => {
+                if (!blob) return;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `classpilot-recording.${blob.type.includes("mp4") ? "mp4" : blob.type.includes("ogg") ? "ogg" : "webm"}`;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+              }}
+            >
+              Download a backup
+            </Button>{" "}
             <Button onClick={save} disabled={busy || !blob?.size}>
               {busy ? "Uploading…" : "Save recording"}
             </Button>
@@ -314,7 +377,15 @@ function Recordings() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {!r.transcript && <Button size="sm" disabled={busy} onClick={()=>transcribe(r.id,r.audio_path)}>Transcribe</Button>}
+                    {!r.transcript && (
+                      <Button
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => transcribe(r.id, r.audio_path)}
+                      >
+                        Transcribe
+                      </Button>
+                    )}
                     <Button size="sm" variant="outline" onClick={() => play(r.id, r.audio_path)}>
                       Play
                     </Button>
@@ -337,7 +408,13 @@ function Recordings() {
                 {r.transcript && (
                   <details className="mt-3">
                     <summary>Review transcript</summary>
-                    <Button variant="outline" disabled={busy} onClick={()=>transcriptNote(r.course_id,r.title,r.transcript!)}>Copy transcript to a new note</Button>
+                    <Button
+                      variant="outline"
+                      disabled={busy}
+                      onClick={() => transcriptNote(r.course_id, r.title, r.transcript!)}
+                    >
+                      Copy transcript to a new note
+                    </Button>
                     <p className="mt-2 whitespace-pre-wrap text-sm">{r.transcript}</p>
                   </details>
                 )}

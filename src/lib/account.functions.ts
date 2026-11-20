@@ -48,6 +48,21 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     try {
+      const now = Math.floor(Date.now() / 1000);
+      if (
+        !context.claims.amr?.some(
+          (m) =>
+            typeof m === "object" &&
+            m.method === "password" &&
+            m.timestamp <= now &&
+            m.timestamp >= now - 300,
+        )
+      )
+        return {
+          ok: false as const,
+          error:
+            "Sign out and sign in with your password, then retry deletion within five minutes.",
+        };
       await removeUserData(context.userId);
       return { ok: true as const };
     } catch (e) {

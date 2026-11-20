@@ -1,3 +1,4 @@
+import { catalogSource } from "@/lib/catalog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -45,6 +46,22 @@ function Page() {
           <p className="text-sm text-muted-foreground">{course.subject}</p>
           <h1 className="mt-1 font-display text-3xl font-bold">{course.course_name}</h1>
           <p className="mt-2 text-muted-foreground">{course.description}</p>
+          {!course.is_custom && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {catalogSource(course, course.grades[0] ?? 0)
+                ? "Title and grade range checked · 2026–27"
+                : "Unverified listing"}{" "}
+              ·{" "}
+              <a
+                className="underline"
+                target="_blank"
+                rel="noreferrer"
+                href={catalogSource(course, course.grades[0] ?? 0) ?? "https://courses.wdmcs.org/"}
+              >
+                District catalog ↗
+              </a>
+            </p>
+          )}
         </div>
         <NewNoteDialog courseId={id} trigger={<Button>New note</Button>} />
       </div>

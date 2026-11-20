@@ -164,6 +164,10 @@ function Chat({ id, initial }: { id: string; initial: UIMessage[] }) {
     transport: new DefaultChatTransport({
       api: "/api/tutor",
       body: { threadId: id },
+      prepareSendMessagesRequest: ({ messages, body, headers }) => ({
+        headers: headers ?? {},
+        body: { ...body, messages: messages.slice(-1) },
+      }),
       headers: async () => {
         const { data } = await supabase.auth.getSession();
         return data.session ? { Authorization: `Bearer ${data.session.access_token}` } : {};
@@ -193,7 +197,9 @@ function Chat({ id, initial }: { id: string; initial: UIMessage[] }) {
               {m.parts
                 .filter((p) => p.type === "text")
                 .map((p, i) => (
-                  <ReactMarkdown key={i}>{p.text}</ReactMarkdown>
+                  <ReactMarkdown key={i} skipHtml disallowedElements={["img"]}>
+                    {p.text}
+                  </ReactMarkdown>
                 ))}
             </div>
           </div>
@@ -216,7 +222,8 @@ function Chat({ id, initial }: { id: string; initial: UIMessage[] }) {
         }}
       >
         <Textarea
-          maxLength={12000} aria-label="Message the tutor"
+          maxLength={12000}
+          aria-label="Message the tutor"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question…"

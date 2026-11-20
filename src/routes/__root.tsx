@@ -1,3 +1,4 @@
+import { clearDrafts } from "@/lib/note-draft";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -131,7 +132,14 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    let owner: string | null | undefined;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      const next = session?.user.id ?? null;
+      if (event === "SIGNED_OUT" || (owner !== undefined && owner !== next)) {
+        queryClient.clear();
+        clearDrafts();
+      }
+      owner = next;
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event === "SIGNED_OUT") queryClient.clear();
