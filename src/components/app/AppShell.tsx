@@ -2,20 +2,20 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import {
-  BookOpenText,
-  Bot,
-  ClipboardList,
   Compass,
   GraduationCap,
   Home,
-  Layers,
   LogOut,
-  Mic,
   NotebookPen,
-  Settings,
-  ShieldCheck,
+  BookOpenText,
+  Layers,
+  ClipboardList,
   FileQuestion,
   Library,
+  Settings,
+  Bot,
+  Search,
+  Mic,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,7 +34,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,18 +54,19 @@ const NAV = [
   { to: "/notes", label: "My Notes", icon: NotebookPen },
   { to: "/recordings", label: "Recordings", icon: Mic },
   { to: "/study-guides", label: "Study Guides", icon: BookOpenText },
-  { to: "/worksheets", label: "Practice Worksheets", icon: ClipboardList },
   { to: "/flashcards", label: "Flashcards", icon: Layers },
+  { to: "/worksheets", label: "Worksheets", icon: ClipboardList },
   { to: "/quizzes", label: "Quizzes & Tests", icon: FileQuestion },
   { to: "/tutor", label: "AI Tutor", icon: Bot },
+  { to: "/resources", label: "Find Resources", icon: Search },
   { to: "/study-center", label: "Study Center", icon: Library },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-function NavLinks({ isAdmin }: { isAdmin: boolean }) {
+function NavLinks() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { setOpenMobile } = useSidebar();
-  const items = isAdmin ? [...NAV, { to: "/admin", label: "Admin", icon: ShieldCheck } as const] : NAV;
+  const items = NAV;
   return (
     <SidebarMenu>
       {items.map((item) => {
@@ -87,10 +87,11 @@ function NavLinks({ isAdmin }: { isAdmin: boolean }) {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { data: me } = useQuery(meQuery);
+  const { data: me, isError: meError, refetch: refetchMe } = useQuery(meQuery);
   const navigate = useNavigate();
   const name = fullName(me?.profile) || me?.email || "Student";
-  const initials = (me?.profile?.first_name?.[0] ?? "") + (me?.profile?.last_name?.[0] ?? "") || "CP";
+  const initials =
+    (me?.profile?.first_name?.[0] ?? "") + (me?.profile?.last_name?.[0] ?? "") || "CP";
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -112,7 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SidebarGroup>
             <SidebarGroupLabel>Learn</SidebarGroupLabel>
             <SidebarGroupContent>
-              <NavLinks isAdmin={!!me?.isAdmin} />
+              <NavLinks />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
@@ -121,7 +122,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-2 font-semibold text-sidebar-accent-foreground">
               <Compass className="h-4 w-4" /> Study tip
             </div>
-            <p className="mt-1 leading-relaxed">Turn today's notes into flashcards — short daily reviews beat cramming.</p>
+            <p className="mt-1 leading-relaxed">
+              Turn today's notes into flashcards — short daily reviews beat cramming.
+            </p>
           </div>
         </SidebarFooter>
       </Sidebar>
@@ -129,18 +132,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="no-print sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur md:px-6">
           <SidebarTrigger />
           <div className="flex-1" />
-          <Button asChild variant="soft" size="sm" className="hidden sm:inline-flex">
-            <Link to="/tutor">
-              <Bot /> Ask ClassPilot AI
-            </Link>
-          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 rounded-full p-0.5 pr-2 transition-colors hover:bg-muted" aria-label="Account menu">
+              <button
+                className="flex items-center gap-2 rounded-full p-0.5 pr-2 transition-colors hover:bg-muted"
+                aria-label="Account menu"
+              >
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-navy text-xs font-semibold text-navy-foreground">{initials.toUpperCase()}</AvatarFallback>
+                  <AvatarFallback className="bg-navy text-xs font-semibold text-navy-foreground">
+                    {initials.toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
-                <span className="hidden max-w-[140px] truncate text-sm font-medium md:inline">{name}</span>
+                <span className="hidden max-w-[140px] truncate text-sm font-medium md:inline">
+                  {name}
+                </span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -152,19 +157,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/settings">
-                  <Settings /> Settings
-                </Link>
-              </DropdownMenuItem>
-              {me?.isAdmin && (
-                <DropdownMenuItem asChild>
-                  <Link to="/admin">
-                    <ShieldCheck /> Admin dashboard
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>
                 <LogOut /> Sign out
               </DropdownMenuItem>
@@ -172,10 +164,23 @@ export function AppShell({ children }: { children: ReactNode }) {
           </DropdownMenu>
         </header>
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8 md:py-8">
-          <EligibilityGate me={me}>{children}</EligibilityGate>
+          {meError ? (
+            <div role="alert" className="rounded-xl border p-6">
+              <p>Couldn’t load your account. Check your connection and try again.</p>
+              <button
+                className="mt-3 text-sm font-semibold text-electric"
+                onClick={() => refetchMe()}
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
+            <EligibilityGate me={me}>{children}</EligibilityGate>
+          )}
         </main>
         <footer className="no-print border-t px-6 py-4 text-center text-xs text-muted-foreground">
-          ClassPilot AI is an independent study tool and is not affiliated with or endorsed by West Des Moines Community Schools.
+          ClassPilot AI is an independent study tool and is not affiliated with or endorsed by West
+          Des Moines Community Schools.
         </footer>
       </SidebarInset>
     </SidebarProvider>

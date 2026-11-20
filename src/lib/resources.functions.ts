@@ -35,7 +35,9 @@ const REPUTABLE = [
 
 function hostOf(url: string) {
   try {
-    return new URL(url).hostname.replace(/^www\./, "");
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return "";
+    return parsed.hostname.replace(/^www\./, "");
   } catch {
     return "";
   }
@@ -60,12 +62,14 @@ async function firecrawlSearch(query: string, limit: number) {
     body: JSON.stringify({ query, limit, country: "US", lang: "en" }),
   });
   if (!res.ok) {
-    const body = await res.text();
-    console.error(`Firecrawl search failed [${res.status}]: ${body}`);
-    if (res.status === 402 || res.status === 403) throw new AiError("Online resource search is unavailable right now.", res.status);
+    console.error(`Firecrawl search failed [${res.status}]`);
+    if (res.status === 402 || res.status === 403)
+      throw new AiError("Online resource search is unavailable right now.", res.status);
     throw new AiError("Couldn't search for resources right now. Please try again.", res.status);
   }
-  const json = (await res.json()) as { data?: { web?: { url: string; title?: string; description?: string }[] } };
+  const json = (await res.json()) as {
+    data?: { web?: { url: string; title?: string; description?: string }[] };
+  };
   return json.data?.web ?? [];
 }
 
@@ -73,12 +77,18 @@ async function firecrawlSearch(query: string, limit: number) {
 export const findResources = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { topic: string; courseName: string | null }) =>
-    z.object({ topic: z.string().min(2).max(200), courseName: z.string().max(200).nullable() }).parse(input),
+    z
+      .object({ topic: z.string().min(2).max(200), courseName: z.string().max(200).nullable() })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     try {
       const { profile } = await prepareAiRequest(context.supabase, context.userId, "resources");
-      const level = profile?.grade ? (profile.grade <= 8 ? "middle school" : "high school") : "high school";
+      const level = profile?.grade
+        ? profile.grade <= 8
+          ? "middle school"
+          : "high school"
+        : "high school";
       const subject = data.courseName ? ` ${data.courseName}` : "";
       const [videos, lessons, general] = await Promise.all([
         firecrawlSearch(`${data.topic}${subject} explained site:youtube.com`, 5),
@@ -92,7 +102,8 @@ export const findResources = createServerFn({ method: "POST" })
         seen.add(r.url);
         const host = hostOf(r.url);
         if (!host) continue;
-        const isVideo = host.endsWith("youtube.com") || host === "youtu.be" || host.endsWith("vimeo.com");
+        const isVideo =
+          host.endsWith("youtube.com") || host === "youtu.be" || host.endsWith("vimeo.com");
         if (isVideo && !/watch|youtu\.be|vimeo\.com\/\d/.test(r.url)) continue;
         all.push({
           title: (r.title ?? host).slice(0, 200),
@@ -120,7 +131,9 @@ export type TopicExplanation = {
 export const explainTopic = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { topic: string; courseId: string | null }) =>
-    z.object({ topic: z.string().min(2).max(200), courseId: z.string().uuid().nullable() }).parse(input),
+    z
+      .object({ topic: z.string().min(2).max(200), courseId: z.string().uuid().nullable() })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     try {
@@ -133,11 +146,15 @@ export const explainTopic = createServerFn({ method: "POST" })
           .eq("course_id", data.courseId)
           .order("updated_at", { ascending: false })
           .limit(5);
-        notes = (rows ?? []).map((n) => `${n.title}: ${n.content_text.slice(0, 3000)}`).join("\n\n");
+        notes = (rows ?? [])
+          .map((n) => `${n.title}: ${n.content_text.slice(0, 3000)}`)
+          .join("\n\n");
       }
       const out = await aiStructured<TopicExplanation>({
         instructions: `You are ClassPilot AI. ${gradeGuidance(profile?.grade)} Explain the topic briefly, give 3-5 step-by-step example steps, and 3 practice questions with answers. In "from_notes", summarize in 1-3 sentences what the student's own notes say about this topic, or write exactly "Your notes don't cover this topic yet." if they don't. Never invent sources.`,
-        messages: [{ role: "user", content: `Topic: ${data.topic}\n\nStudent notes:\n${notes || "(none)"}` }],
+        messages: [
+          { role: "user", content: `Topic: ${data.topic}\n\nStudent notes:\n${notes || "(none)"}` },
+        ],
         schema: obj({
           short_explanation: str(),
           steps: arr(obj({ title: str(), detail: str() })),

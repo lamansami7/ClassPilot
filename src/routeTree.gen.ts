@@ -10,13 +10,91 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedRecordingsRouteImport } from './routes/_authenticated/recordings'
+import { Route as AuthenticatedResourcesRouteImport } from './routes/_authenticated/resources'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedStudyCenterRouteImport } from './routes/_authenticated/study-center'
+import { Route as AuthenticatedTutorRouteImport } from './routes/_authenticated/tutor'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as ApiTutorRouteImport } from './routes/api/tutor'
+import { Route as AuthenticatedClassesIndexRouteImport } from './routes/_authenticated/classes/index'
+import { Route as AuthenticatedClassesIdRouteImport } from './routes/_authenticated/classes/$id'
+import { Route as AuthenticatedFlashcardsIndexRouteImport } from './routes/_authenticated/flashcards/index'
+import { Route as AuthenticatedFlashcardsIdRouteImport } from './routes/_authenticated/flashcards/$id'
+import { Route as AuthenticatedNotesIndexRouteImport } from './routes/_authenticated/notes/index'
+import { Route as AuthenticatedNotesNoteIdRouteImport } from './routes/_authenticated/notes/$noteId'
+import { Route as AuthenticatedQuizzesIndexRouteImport } from './routes/_authenticated/quizzes/index'
+import { Route as AuthenticatedQuizzesIdRouteImport } from './routes/_authenticated/quizzes/$id'
+import { Route as AuthenticatedStudyGuidesIndexRouteImport } from './routes/_authenticated/study-guides/index'
+import { Route as AuthenticatedStudyGuidesIdRouteImport } from './routes/_authenticated/study-guides/$id'
+import { Route as AuthenticatedWorksheetsIndexRouteImport } from './routes/_authenticated/worksheets/index'
+import { Route as AuthenticatedWorksheetsIdRouteImport } from './routes/_authenticated/worksheets/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRecordingsRoute = AuthenticatedRecordingsRouteImport.update({
+  id: '/recordings',
+  path: '/recordings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedResourcesRoute = AuthenticatedResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStudyCenterRoute =
+  AuthenticatedStudyCenterRouteImport.update({
+    id: '/study-center',
+    path: '/study-center',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTutorRoute = AuthenticatedTutorRouteImport.update({
+  id: '/tutor',
+  path: '/tutor',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
   id: '/api/transcribe',
@@ -28,33 +106,251 @@ const ApiTutorRoute = ApiTutorRouteImport.update({
   path: '/api/tutor',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedClassesIndexRoute =
+  AuthenticatedClassesIndexRouteImport.update({
+    id: '/classes/',
+    path: '/classes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClassesIdRoute = AuthenticatedClassesIdRouteImport.update({
+  id: '/classes/$id',
+  path: '/classes/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFlashcardsIndexRoute =
+  AuthenticatedFlashcardsIndexRouteImport.update({
+    id: '/flashcards/',
+    path: '/flashcards/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFlashcardsIdRoute =
+  AuthenticatedFlashcardsIdRouteImport.update({
+    id: '/flashcards/$id',
+    path: '/flashcards/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNotesIndexRoute = AuthenticatedNotesIndexRouteImport.update({
+  id: '/notes/',
+  path: '/notes/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNotesNoteIdRoute =
+  AuthenticatedNotesNoteIdRouteImport.update({
+    id: '/notes/$noteId',
+    path: '/notes/$noteId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedQuizzesIndexRoute =
+  AuthenticatedQuizzesIndexRouteImport.update({
+    id: '/quizzes/',
+    path: '/quizzes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedQuizzesIdRoute = AuthenticatedQuizzesIdRouteImport.update({
+  id: '/quizzes/$id',
+  path: '/quizzes/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStudyGuidesIndexRoute =
+  AuthenticatedStudyGuidesIndexRouteImport.update({
+    id: '/study-guides/',
+    path: '/study-guides/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStudyGuidesIdRoute =
+  AuthenticatedStudyGuidesIdRouteImport.update({
+    id: '/study-guides/$id',
+    path: '/study-guides/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedWorksheetsIndexRoute =
+  AuthenticatedWorksheetsIndexRouteImport.update({
+    id: '/worksheets/',
+    path: '/worksheets/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedWorksheetsIdRoute =
+  AuthenticatedWorksheetsIdRouteImport.update({
+    id: '/worksheets/$id',
+    path: '/worksheets/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/recordings': typeof AuthenticatedRecordingsRoute
+  '/resources': typeof AuthenticatedResourcesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/study-center': typeof AuthenticatedStudyCenterRoute
+  '/tutor': typeof AuthenticatedTutorRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/tutor': typeof ApiTutorRoute
+  '/classes/$id': typeof AuthenticatedClassesIdRoute
+  '/flashcards/$id': typeof AuthenticatedFlashcardsIdRoute
+  '/notes/$noteId': typeof AuthenticatedNotesNoteIdRoute
+  '/quizzes/$id': typeof AuthenticatedQuizzesIdRoute
+  '/study-guides/$id': typeof AuthenticatedStudyGuidesIdRoute
+  '/worksheets/$id': typeof AuthenticatedWorksheetsIdRoute
+  '/classes/': typeof AuthenticatedClassesIndexRoute
+  '/flashcards/': typeof AuthenticatedFlashcardsIndexRoute
+  '/notes/': typeof AuthenticatedNotesIndexRoute
+  '/quizzes/': typeof AuthenticatedQuizzesIndexRoute
+  '/study-guides/': typeof AuthenticatedStudyGuidesIndexRoute
+  '/worksheets/': typeof AuthenticatedWorksheetsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/recordings': typeof AuthenticatedRecordingsRoute
+  '/resources': typeof AuthenticatedResourcesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/study-center': typeof AuthenticatedStudyCenterRoute
+  '/tutor': typeof AuthenticatedTutorRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/tutor': typeof ApiTutorRoute
+  '/classes/$id': typeof AuthenticatedClassesIdRoute
+  '/flashcards/$id': typeof AuthenticatedFlashcardsIdRoute
+  '/notes/$noteId': typeof AuthenticatedNotesNoteIdRoute
+  '/quizzes/$id': typeof AuthenticatedQuizzesIdRoute
+  '/study-guides/$id': typeof AuthenticatedStudyGuidesIdRoute
+  '/worksheets/$id': typeof AuthenticatedWorksheetsIdRoute
+  '/classes': typeof AuthenticatedClassesIndexRoute
+  '/flashcards': typeof AuthenticatedFlashcardsIndexRoute
+  '/notes': typeof AuthenticatedNotesIndexRoute
+  '/quizzes': typeof AuthenticatedQuizzesIndexRoute
+  '/study-guides': typeof AuthenticatedStudyGuidesIndexRoute
+  '/worksheets': typeof AuthenticatedWorksheetsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/recordings': typeof AuthenticatedRecordingsRoute
+  '/_authenticated/resources': typeof AuthenticatedResourcesRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/study-center': typeof AuthenticatedStudyCenterRoute
+  '/_authenticated/tutor': typeof AuthenticatedTutorRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/tutor': typeof ApiTutorRoute
+  '/_authenticated/classes/$id': typeof AuthenticatedClassesIdRoute
+  '/_authenticated/flashcards/$id': typeof AuthenticatedFlashcardsIdRoute
+  '/_authenticated/notes/$noteId': typeof AuthenticatedNotesNoteIdRoute
+  '/_authenticated/quizzes/$id': typeof AuthenticatedQuizzesIdRoute
+  '/_authenticated/study-guides/$id': typeof AuthenticatedStudyGuidesIdRoute
+  '/_authenticated/worksheets/$id': typeof AuthenticatedWorksheetsIdRoute
+  '/_authenticated/classes/': typeof AuthenticatedClassesIndexRoute
+  '/_authenticated/flashcards/': typeof AuthenticatedFlashcardsIndexRoute
+  '/_authenticated/notes/': typeof AuthenticatedNotesIndexRoute
+  '/_authenticated/quizzes/': typeof AuthenticatedQuizzesIndexRoute
+  '/_authenticated/study-guides/': typeof AuthenticatedStudyGuidesIndexRoute
+  '/_authenticated/worksheets/': typeof AuthenticatedWorksheetsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/transcribe' | '/api/tutor'
+  fullPaths:
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/dashboard'
+    | '/recordings'
+    | '/resources'
+    | '/settings'
+    | '/study-center'
+    | '/tutor'
+    | '/api/transcribe'
+    | '/api/tutor'
+    | '/classes/$id'
+    | '/flashcards/$id'
+    | '/notes/$noteId'
+    | '/quizzes/$id'
+    | '/study-guides/$id'
+    | '/worksheets/$id'
+    | '/classes/'
+    | '/flashcards/'
+    | '/notes/'
+    | '/quizzes/'
+    | '/study-guides/'
+    | '/worksheets/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/transcribe' | '/api/tutor'
-  id: '__root__' | '/' | '/api/transcribe' | '/api/tutor'
+  to:
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/dashboard'
+    | '/recordings'
+    | '/resources'
+    | '/settings'
+    | '/study-center'
+    | '/tutor'
+    | '/api/transcribe'
+    | '/api/tutor'
+    | '/classes/$id'
+    | '/flashcards/$id'
+    | '/notes/$noteId'
+    | '/quizzes/$id'
+    | '/study-guides/$id'
+    | '/worksheets/$id'
+    | '/classes'
+    | '/flashcards'
+    | '/notes'
+    | '/quizzes'
+    | '/study-guides'
+    | '/worksheets'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/recordings'
+    | '/_authenticated/resources'
+    | '/_authenticated/settings'
+    | '/_authenticated/study-center'
+    | '/_authenticated/tutor'
+    | '/api/transcribe'
+    | '/api/tutor'
+    | '/_authenticated/classes/$id'
+    | '/_authenticated/flashcards/$id'
+    | '/_authenticated/notes/$noteId'
+    | '/_authenticated/quizzes/$id'
+    | '/_authenticated/study-guides/$id'
+    | '/_authenticated/worksheets/$id'
+    | '/_authenticated/classes/'
+    | '/_authenticated/flashcards/'
+    | '/_authenticated/notes/'
+    | '/_authenticated/quizzes/'
+    | '/_authenticated/study-guides/'
+    | '/_authenticated/worksheets/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SignupRoute: typeof SignupRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   ApiTutorRoute: typeof ApiTutorRoute
 }
@@ -67,6 +363,83 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recordings': {
+      id: '/_authenticated/recordings'
+      path: '/recordings'
+      fullPath: '/recordings'
+      preLoaderRoute: typeof AuthenticatedRecordingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/resources': {
+      id: '/_authenticated/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof AuthenticatedResourcesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/study-center': {
+      id: '/_authenticated/study-center'
+      path: '/study-center'
+      fullPath: '/study-center'
+      preLoaderRoute: typeof AuthenticatedStudyCenterRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tutor': {
+      id: '/_authenticated/tutor'
+      path: '/tutor'
+      fullPath: '/tutor'
+      preLoaderRoute: typeof AuthenticatedTutorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/transcribe': {
       id: '/api/transcribe'
@@ -82,11 +455,145 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTutorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/classes/': {
+      id: '/_authenticated/classes/'
+      path: '/classes'
+      fullPath: '/classes/'
+      preLoaderRoute: typeof AuthenticatedClassesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/classes/$id': {
+      id: '/_authenticated/classes/$id'
+      path: '/classes/$id'
+      fullPath: '/classes/$id'
+      preLoaderRoute: typeof AuthenticatedClassesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/flashcards/': {
+      id: '/_authenticated/flashcards/'
+      path: '/flashcards'
+      fullPath: '/flashcards/'
+      preLoaderRoute: typeof AuthenticatedFlashcardsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/flashcards/$id': {
+      id: '/_authenticated/flashcards/$id'
+      path: '/flashcards/$id'
+      fullPath: '/flashcards/$id'
+      preLoaderRoute: typeof AuthenticatedFlashcardsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notes/': {
+      id: '/_authenticated/notes/'
+      path: '/notes'
+      fullPath: '/notes/'
+      preLoaderRoute: typeof AuthenticatedNotesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notes/$noteId': {
+      id: '/_authenticated/notes/$noteId'
+      path: '/notes/$noteId'
+      fullPath: '/notes/$noteId'
+      preLoaderRoute: typeof AuthenticatedNotesNoteIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/quizzes/': {
+      id: '/_authenticated/quizzes/'
+      path: '/quizzes'
+      fullPath: '/quizzes/'
+      preLoaderRoute: typeof AuthenticatedQuizzesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/quizzes/$id': {
+      id: '/_authenticated/quizzes/$id'
+      path: '/quizzes/$id'
+      fullPath: '/quizzes/$id'
+      preLoaderRoute: typeof AuthenticatedQuizzesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/study-guides/': {
+      id: '/_authenticated/study-guides/'
+      path: '/study-guides'
+      fullPath: '/study-guides/'
+      preLoaderRoute: typeof AuthenticatedStudyGuidesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/study-guides/$id': {
+      id: '/_authenticated/study-guides/$id'
+      path: '/study-guides/$id'
+      fullPath: '/study-guides/$id'
+      preLoaderRoute: typeof AuthenticatedStudyGuidesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/worksheets/': {
+      id: '/_authenticated/worksheets/'
+      path: '/worksheets'
+      fullPath: '/worksheets/'
+      preLoaderRoute: typeof AuthenticatedWorksheetsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/worksheets/$id': {
+      id: '/_authenticated/worksheets/$id'
+      path: '/worksheets/$id'
+      fullPath: '/worksheets/$id'
+      preLoaderRoute: typeof AuthenticatedWorksheetsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedRecordingsRoute: typeof AuthenticatedRecordingsRoute
+  AuthenticatedResourcesRoute: typeof AuthenticatedResourcesRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedStudyCenterRoute: typeof AuthenticatedStudyCenterRoute
+  AuthenticatedTutorRoute: typeof AuthenticatedTutorRoute
+  AuthenticatedClassesIdRoute: typeof AuthenticatedClassesIdRoute
+  AuthenticatedFlashcardsIdRoute: typeof AuthenticatedFlashcardsIdRoute
+  AuthenticatedNotesNoteIdRoute: typeof AuthenticatedNotesNoteIdRoute
+  AuthenticatedQuizzesIdRoute: typeof AuthenticatedQuizzesIdRoute
+  AuthenticatedStudyGuidesIdRoute: typeof AuthenticatedStudyGuidesIdRoute
+  AuthenticatedWorksheetsIdRoute: typeof AuthenticatedWorksheetsIdRoute
+  AuthenticatedClassesIndexRoute: typeof AuthenticatedClassesIndexRoute
+  AuthenticatedFlashcardsIndexRoute: typeof AuthenticatedFlashcardsIndexRoute
+  AuthenticatedNotesIndexRoute: typeof AuthenticatedNotesIndexRoute
+  AuthenticatedQuizzesIndexRoute: typeof AuthenticatedQuizzesIndexRoute
+  AuthenticatedStudyGuidesIndexRoute: typeof AuthenticatedStudyGuidesIndexRoute
+  AuthenticatedWorksheetsIndexRoute: typeof AuthenticatedWorksheetsIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedRecordingsRoute: AuthenticatedRecordingsRoute,
+  AuthenticatedResourcesRoute: AuthenticatedResourcesRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedStudyCenterRoute: AuthenticatedStudyCenterRoute,
+  AuthenticatedTutorRoute: AuthenticatedTutorRoute,
+  AuthenticatedClassesIdRoute: AuthenticatedClassesIdRoute,
+  AuthenticatedFlashcardsIdRoute: AuthenticatedFlashcardsIdRoute,
+  AuthenticatedNotesNoteIdRoute: AuthenticatedNotesNoteIdRoute,
+  AuthenticatedQuizzesIdRoute: AuthenticatedQuizzesIdRoute,
+  AuthenticatedStudyGuidesIdRoute: AuthenticatedStudyGuidesIdRoute,
+  AuthenticatedWorksheetsIdRoute: AuthenticatedWorksheetsIdRoute,
+  AuthenticatedClassesIndexRoute: AuthenticatedClassesIndexRoute,
+  AuthenticatedFlashcardsIndexRoute: AuthenticatedFlashcardsIndexRoute,
+  AuthenticatedNotesIndexRoute: AuthenticatedNotesIndexRoute,
+  AuthenticatedQuizzesIndexRoute: AuthenticatedQuizzesIndexRoute,
+  AuthenticatedStudyGuidesIndexRoute: AuthenticatedStudyGuidesIndexRoute,
+  AuthenticatedWorksheetsIndexRoute: AuthenticatedWorksheetsIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SignupRoute: SignupRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
   ApiTutorRoute: ApiTutorRoute,
 }

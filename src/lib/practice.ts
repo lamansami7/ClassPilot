@@ -61,7 +61,12 @@ export type PracticeResults = {
   results: QuestionResult[];
 };
 
-export const OBJECTIVE_TYPES: QuestionType[] = ["multiple_choice", "true_false", "fill_blank", "matching"];
+export const OBJECTIVE_TYPES: QuestionType[] = [
+  "multiple_choice",
+  "true_false",
+  "fill_blank",
+  "matching",
+];
 
 export function isObjective(type: QuestionType) {
   return OBJECTIVE_TYPES.includes(type);
@@ -84,18 +89,24 @@ function sameAnswer(given: string, expected: string) {
   if (a === b) return true;
   const na = Number(a);
   const nb = Number(b);
-  if (!Number.isNaN(na) && !Number.isNaN(nb) && a !== "" && b !== "") return Math.abs(na - nb) < 1e-9;
+  if (!Number.isNaN(na) && !Number.isNaN(nb) && a !== "" && b !== "")
+    return Math.abs(na - nb) < 1e-9;
   return false;
 }
 
 /** Grades objective questions deterministically. Returns null for questions that need AI grading. */
-export function gradeObjective(q: Question, answer: Answers[string] | undefined): QuestionResult | null {
+export function gradeObjective(
+  q: Question,
+  answer: Answers[string] | undefined,
+): QuestionResult | null {
   if (!isObjective(q.type)) return null;
 
   if (q.type === "matching") {
     const pairs = q.matching_pairs ?? [];
     const given = (answer && typeof answer === "object" ? answer : {}) as Record<string, string>;
-    const right = pairs.filter((p) => given[p.left] !== undefined && sameAnswer(given[p.left], p.right)).length;
+    const right = pairs.filter(
+      (p) => given[p.left] !== undefined && sameAnswer(given[p.left]!, p.right),
+    ).length;
     const score = pairs.length ? right / pairs.length : 0;
     return {
       id: q.id,
@@ -125,7 +136,10 @@ export function gradeObjective(q: Question, answer: Answers[string] | undefined)
 }
 
 /** Combines per-question results into a score and topic breakdown. */
-export function summarizeResults(questions: Question[], results: QuestionResult[]): PracticeResults {
+export function summarizeResults(
+  questions: Question[],
+  results: QuestionResult[],
+): PracticeResults {
   const byId = new Map(results.map((r) => [r.id, r]));
   const topics = new Map<string, { earned: number; total: number }>();
   let earned = 0;
@@ -145,7 +159,9 @@ export function summarizeResults(questions: Question[], results: QuestionResult[
     earned: Math.round(earned * 100) / 100,
     percent: total ? Math.round((earned / total) * 100) : 0,
     by_topic,
-    weak_topics: by_topic.filter((t) => t.total > 0 && t.earned / t.total < 0.7).map((t) => t.topic),
+    weak_topics: by_topic
+      .filter((t) => t.total > 0 && t.earned / t.total < 0.7)
+      .map((t) => t.topic),
     results: questions.map((q) => byId.get(q.id)).filter(Boolean) as QuestionResult[],
   };
 }

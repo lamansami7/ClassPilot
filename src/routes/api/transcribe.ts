@@ -20,7 +20,8 @@ export const Route = createFileRoute("/api/transcribe")({
         }
         const form = await request.formData();
         const file = form.get("file");
-        if (!(file instanceof File) || file.size < 2048) return jsonError("The recording was empty. Please record again.", 400);
+        if (!(file instanceof File) || file.size < 2048)
+          return jsonError("The recording was empty. Please record again.", 400);
         if (file.size > MAX_BYTES) return jsonError("That audio segment is too large.", 413);
         if (!file.type.startsWith("audio/")) return jsonError("Unsupported audio format.", 400);
         const key = process.env["LOVABLE_API_KEY"];
@@ -37,8 +38,7 @@ export const Route = createFileRoute("/api/transcribe")({
           signal: request.signal,
         });
         if (!res.ok) {
-          const body = await res.text();
-          console.error(`Transcription failed [${res.status}]: ${body}`);
+          console.error(`Transcription failed [${res.status}]`);
           const msg =
             res.status === 402
               ? "ClassPilot AI is out of AI credits right now."
