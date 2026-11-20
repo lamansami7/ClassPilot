@@ -97,7 +97,7 @@ function NoteEditorPage() {
       do {
         dirty.current = false;
         const snapshot = { ...latest.current };
-        const { error } = await supabase.from("notes").update({
+        const { data, error } = await supabase.from("notes").update({
           title: snapshot.title.trim() || "Untitled note",
           topic: snapshot.topic.trim() || null,
           course_id: snapshot.courseId || null,
