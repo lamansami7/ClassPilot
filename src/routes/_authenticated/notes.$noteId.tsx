@@ -7,7 +7,7 @@ import Highlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import { ArrowLeft, Bold, Check, Highlighter, Italic, List, ListChecks, ListOrdered, Loader2, Save, Trash2, Underline } from "lucide-react";
+import { ArrowLeft, Bold, Check, Highlighter, Italic, List, ListChecks, ListOrdered, Loader2, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -92,6 +92,7 @@ function NoteEditorPage() {
     if (!dirty.current && !force) return;
     saving.current = true;
     setSaveState("saving");
+    let failed = false;
     try {
       do {
         dirty.current = false;
@@ -102,24 +103,27 @@ function NoteEditorPage() {
           course_id: snapshot.courseId || null,
           content: snapshot.content,
           content_text: snapshot.contentText,
-        }).eq("id", noteId);
+        }).eq("id", noteId).select("id").maybeSingle();
         if (error) throw error;
+        if (!data) throw new Error("This note is no longer available.");
         await qc.invalidateQueries({ queryKey: ["notes"] });
         if (dirty.current) setSaveState("saving");
       } while (dirty.current);
       setSaveState("saved");
     } catch {
+      failed = true;
       dirty.current = true;
       setSaveState("error");
     } finally {
       saving.current = false;
-      if (dirty.current && saveState !== "error") timer.current = setTimeout(() => void savedRef.current(), 250);
+      if (dirty.current && !failed) timer.current = setTimeout(() => void savedRef.current(), 250);
     }
   }, [noteId, qc, saveState]);
   savedRef.current = save;
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
+    if (dirty.current) void savedRef.current();
   }, []);
 
   const updateTitle = (value: string) => { setTitle(value); latest.current.title = value; markDirty(); };

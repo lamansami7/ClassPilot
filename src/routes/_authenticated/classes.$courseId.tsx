@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpenText, NotebookPen } from "lucide-react";
 import { EmptyState, PageHeader } from "@/components/app/PageHeader";
