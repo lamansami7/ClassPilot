@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { myCoursesQuery } from "@/lib/queries";
 
@@ -25,7 +31,11 @@ export function ClassNoteFields({
     queryKey: ["notes", "by-course", courseId],
     enabled: !!courseId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("notes").select("id, title").eq("course_id", courseId).order("updated_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("notes")
+        .select("id, title")
+        .eq("course_id", courseId)
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -34,7 +44,13 @@ export function ClassNoteFields({
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="space-y-2">
         <Label>Class</Label>
-        <Select value={courseId} onValueChange={(v) => { onCourse(v); onNote(null); }}>
+        <Select
+          value={courseId}
+          onValueChange={(v) => {
+            onCourse(v);
+            onNote(null);
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Choose a class" />
           </SelectTrigger>
@@ -49,7 +65,11 @@ export function ClassNoteFields({
       </div>
       <div className="space-y-2">
         <Label>{noteOptional ? "From note (optional)" : "Note"}</Label>
-        <Select value={noteId ?? NONE} onValueChange={(v) => onNote(v === NONE ? null : v)} disabled={!courseId}>
+        <Select
+          value={noteId ?? NONE}
+          onValueChange={(v) => onNote(v === NONE ? null : v)}
+          disabled={!courseId}
+        >
           <SelectTrigger>
             <SelectValue placeholder="All recent notes" />
           </SelectTrigger>

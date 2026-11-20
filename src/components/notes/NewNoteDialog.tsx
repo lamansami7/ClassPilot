@@ -3,27 +3,58 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { myCoursesQuery } from "@/lib/queries";
 import { currentUserId } from "@/lib/use-user";
 
-export async function createNote(opts: { courseId: string | null; title?: string; folderId?: string | null; topic?: string | null }) {
+export async function createNote(opts: {
+  courseId: string | null;
+  title?: string;
+  folderId?: string | null;
+  topic?: string | null;
+}) {
   const userId = await currentUserId();
   const { data, error } = await supabase
     .from("notes")
-    .insert({ student_id: userId, course_id: opts.courseId, title: opts.title?.trim() || "Untitled note", folder_id: opts.folderId ?? null, topic: opts.topic ?? null })
+    .insert({
+      student_id: userId,
+      course_id: opts.courseId,
+      title: opts.title?.trim() || "Untitled note",
+      folder_id: opts.folderId ?? null,
+      topic: opts.topic ?? null,
+    })
     .select("id")
     .single();
   if (error) throw error;
   return data.id;
 }
 
-export function NewNoteDialog({ trigger, courseId }: { trigger: ReactNode; courseId?: string | null }) {
+export function NewNoteDialog({
+  trigger,
+  courseId,
+}: {
+  trigger: ReactNode;
+  courseId?: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [course, setCourse] = useState<string>(courseId ?? "");
   const [title, setTitle] = useState("");
@@ -33,7 +64,10 @@ export function NewNoteDialog({ trigger, courseId }: { trigger: ReactNode; cours
   const qc = useQueryClient();
 
   const create = async () => {
-    if (!course) return toast.error("Choose a class for this note.");
+    if (!course) {
+      toast.error("Choose a class for this note.");
+      return;
+    }
     setBusy(true);
     try {
       const id = await createNote({ courseId: course, title });
@@ -74,7 +108,12 @@ export function NewNoteDialog({ trigger, courseId }: { trigger: ReactNode; cours
           </div>
           <div className="space-y-2">
             <Label htmlFor="nt">Title (optional)</Label>
-            <Input id="nt" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Slope-intercept form" />
+            <Input
+              id="nt"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Slope-intercept form"
+            />
           </div>
         </div>
         <DialogFooter>

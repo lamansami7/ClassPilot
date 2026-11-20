@@ -22,13 +22,20 @@ export const meQuery = queryOptions({
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData.user) throw new Error("Not signed in");
     const user = userData.user;
-    const [{ data: profile }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", user.id),
-    ]);
+    const [{ data: profile, error: profileError }, { data: roles, error: rolesError }] =
+      await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", user.id),
+      ]);
+    if (profileError) throw profileError;
+    if (rolesError) throw rolesError;
     let school: School | null = null;
     if (profile?.school_id) {
-      const { data } = await supabase.from("schools").select("*").eq("id", profile.school_id).maybeSingle();
+      const { data } = await supabase
+        .from("schools")
+        .select("*")
+        .eq("id", profile.school_id)
+        .maybeSingle();
       school = data ?? null;
     }
     return {
@@ -55,16 +62,21 @@ export const myCoursesQuery = queryOptions({
     if (error) throw error;
     const courses = (data ?? []).map((r) => r.courses).filter(Boolean) as Course[];
     if (!courses.length) return [];
-    const { data: notes } = await supabase
+    const { data: notes, error: notesError } = await supabase
       .from("notes")
       .select("course_id, updated_at")
       .in(
         "course_id",
         courses.map((c) => c.id),
       );
+    if (notesError) throw notesError;
     return courses.map((c) => {
       const mine = (notes ?? []).filter((n) => n.course_id === c.id);
-      const last = mine.map((n) => n.updated_at).sort().at(-1) ?? null;
+      const last =
+        mine
+          .map((n) => n.updated_at)
+          .sort()
+          .at(-1) ?? null;
       return { ...c, noteCount: mine.length, lastActivity: last };
     });
   },
@@ -92,7 +104,11 @@ export const catalogQuery = (grade: number | null) =>
 export const schoolsQuery = queryOptions({
   queryKey: ["schools"],
   queryFn: async (): Promise<School[]> => {
-    const { data, error } = await supabase.from("schools").select("*").eq("active", true).order("name");
+    const { data, error } = await supabase
+      .from("schools")
+      .select("*")
+      .eq("active", true)
+      .order("name");
     if (error) throw error;
     return data ?? [];
   },

@@ -4,7 +4,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Wand2 } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,15 +43,29 @@ export function CreateFlashcardsDialog({
   const qc = useQueryClient();
 
   const submit = async () => {
-    if (!course) return toast.error("Choose a class.");
+    if (!course) {
+      toast.error("Choose a class.");
+      return;
+    }
     setBusy(true);
-    const res = await gen({ data: { courseId: course, noteId: note, topic: topic.trim() || null, count } });
-    setBusy(false);
-    if (!res.ok) return toast.error(res.error);
-    qc.invalidateQueries({ queryKey: ["flashcards"] });
-    toast.success("Your flashcards are ready");
-    setOpen(false);
-    navigate({ to: "/flashcards/$id", params: { id: res.data.id } });
+    try {
+      const res = await gen({
+        data: { courseId: course, noteId: note, topic: topic.trim() || null, count },
+      });
+      setBusy(false);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      qc.invalidateQueries({ queryKey: ["flashcards"] });
+      toast.success("Your flashcards are ready");
+      setOpen(false);
+      navigate({ to: "/flashcards/$id", params: { id: res.data.id } });
+    } catch {
+      toast.error("Could not generate material. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -58,17 +80,33 @@ export function CreateFlashcardsDialog({
           <AiBusy label="Making your flashcards…" />
         ) : (
           <div className="space-y-5">
-            <ClassNoteFields courseId={course} noteId={note} onCourse={setCourse} onNote={setNote} />
+            <ClassNoteFields
+              courseId={course}
+              noteId={note}
+              onCourse={setCourse}
+              onNote={setNote}
+            />
             <div className="space-y-2">
               <Label htmlFor="ft">Topic (optional)</Label>
-              <Input id="ft" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Cell organelles" />
+              <Input
+                id="ft"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="e.g. Cell organelles"
+              />
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>Number of cards</Label>
                 <span className="font-display text-lg font-bold text-navy">{count}</span>
               </div>
-              <Slider min={4} max={40} step={1} value={[count]} onValueChange={(v) => setCount(v[0] ?? count)} />
+              <Slider
+                min={4}
+                max={40}
+                step={1}
+                value={[count]}
+                onValueChange={(v) => setCount(v[0] ?? count)}
+              />
             </div>
           </div>
         )}

@@ -4,13 +4,26 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Wand2 } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { generatePractice } from "@/lib/ai.functions";
-import { QUESTION_TYPES, QUESTION_TYPE_LABELS, type Difficulty, type QuestionType } from "@/lib/practice";
+import {
+  QUESTION_TYPES,
+  QUESTION_TYPE_LABELS,
+  type Difficulty,
+  type QuestionType,
+} from "@/lib/practice";
 import { cn } from "@/lib/utils";
 import { ClassNoteFields } from "./ClassNoteFields";
 import { AiBusy } from "./AiBusy";
@@ -46,20 +59,47 @@ export function CreatePracticeDialog({
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const toggleType = (t: QuestionType) => setTypes((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+  const toggleType = (t: QuestionType) =>
+    setTypes((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
 
   const submit = async () => {
-    if (!course) return toast.error("Choose a class.");
-    if (!types.length) return toast.error("Pick at least one question type.");
+    if (!course) {
+      toast.error("Choose a class.");
+      return;
+    }
+    if (!types.length) {
+      toast.error("Pick at least one question type.");
+      return;
+    }
     setBusy(true);
-    const res = await gen({ data: { kind, courseId: course, noteId: note, topic: topic.trim() || null, difficulty, count, types, title: title.trim() || null } });
-    setBusy(false);
-    if (!res.ok) return toast.error(res.error);
-    qc.invalidateQueries({ queryKey: [kind === "quiz" ? "quizzes" : "worksheets"] });
-    toast.success(kind === "quiz" ? "Your practice test is ready" : "Your worksheet is ready");
-    setOpen(false);
-    if (kind === "quiz") navigate({ to: "/quizzes/$id", params: { id: res.data.id } });
-    else navigate({ to: "/worksheets/$id", params: { id: res.data.id } });
+    try {
+      const res = await gen({
+        data: {
+          kind,
+          courseId: course,
+          noteId: note,
+          topic: topic.trim() || null,
+          difficulty,
+          count,
+          types,
+          title: title.trim() || null,
+        },
+      });
+      setBusy(false);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      qc.invalidateQueries({ queryKey: [kind === "quiz" ? "quizzes" : "worksheets"] });
+      toast.success(kind === "quiz" ? "Your practice test is ready" : "Your worksheet is ready");
+      setOpen(false);
+      if (kind === "quiz") navigate({ to: "/quizzes/$id", params: { id: res.data.id } });
+      else navigate({ to: "/worksheets/$id", params: { id: res.data.id } });
+    } catch {
+      toast.error("Could not generate material. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -67,18 +107,34 @@ export function CreatePracticeDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{kind === "quiz" ? "Create a Practice Test" : "Create Practice Worksheet"}</DialogTitle>
-          <DialogDescription>ClassPilot AI writes questions from your notes for this class.</DialogDescription>
+          <DialogTitle>
+            {kind === "quiz" ? "Create a Practice Test" : "Create Practice Worksheet"}
+          </DialogTitle>
+          <DialogDescription>
+            ClassPilot AI writes questions from your notes for this class.
+          </DialogDescription>
         </DialogHeader>
         {busy ? (
-          <AiBusy label={kind === "quiz" ? "Writing your practice test…" : "Writing your worksheet…"} />
+          <AiBusy
+            label={kind === "quiz" ? "Writing your practice test…" : "Writing your worksheet…"}
+          />
         ) : (
           <div className="space-y-5">
-            <ClassNoteFields courseId={course} noteId={note} onCourse={setCourse} onNote={setNote} />
+            <ClassNoteFields
+              courseId={course}
+              noteId={note}
+              onCourse={setCourse}
+              onNote={setNote}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="pt">Topic (optional)</Label>
-                <Input id="pt" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Systems of equations" />
+                <Input
+                  id="pt"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="e.g. Systems of equations"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ptt">Title (optional)</Label>
@@ -93,7 +149,12 @@ export function CreatePracticeDialog({
                     key={d}
                     type="button"
                     onClick={() => setDifficulty(d)}
-                    className={cn("rounded-lg border px-2 py-2 text-sm font-medium capitalize transition-colors", difficulty === d ? "border-electric bg-electric text-electric-foreground" : "hover:border-electric/50")}
+                    className={cn(
+                      "rounded-lg border px-2 py-2 text-sm font-medium capitalize transition-colors",
+                      difficulty === d
+                        ? "border-electric bg-electric text-electric-foreground"
+                        : "hover:border-electric/50",
+                    )}
                   >
                     {d}
                   </button>
@@ -105,7 +166,13 @@ export function CreatePracticeDialog({
                 <Label>Number of questions</Label>
                 <span className="font-display text-lg font-bold text-navy">{count}</span>
               </div>
-              <Slider min={3} max={30} step={1} value={[count]} onValueChange={(v) => setCount(v[0] ?? count)} />
+              <Slider
+                min={3}
+                max={30}
+                step={1}
+                value={[count]}
+                onValueChange={(v) => setCount(v[0] ?? count)}
+              />
             </div>
             <div className="space-y-2">
               <Label>Question types</Label>
@@ -115,7 +182,12 @@ export function CreatePracticeDialog({
                     key={t}
                     type="button"
                     onClick={() => toggleType(t)}
-                    className={cn("rounded-full border px-3 py-1.5 text-xs font-medium transition-colors", types.includes(t) ? "border-electric bg-electric-soft text-accent-foreground" : "hover:border-electric/50")}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                      types.includes(t)
+                        ? "border-electric bg-electric-soft text-accent-foreground"
+                        : "hover:border-electric/50",
+                    )}
                   >
                     {QUESTION_TYPE_LABELS[t]}
                   </button>
