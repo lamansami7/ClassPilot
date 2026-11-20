@@ -59,6 +59,17 @@ function Dashboard() {
           </Button>
         </div>
       </section>
+      {courses.isSuccess && !courses.data.length && (
+        <section className="rounded-xl border bg-card p-5">
+          <h2 className="font-display text-xl font-bold">Start with your schedule</h2>
+          <p className="my-2 text-muted-foreground">
+            Add a class, create your first note, then use it to make practice questions.
+          </p>
+          <Button asChild variant="soft">
+            <Link to="/classes">Choose classes →</Link>
+          </Button>
+        </section>
+      )}
       <section>
         <h2 className="font-display text-xl font-bold">Quick actions</h2>
         <div className="mt-4 flex flex-wrap gap-2">

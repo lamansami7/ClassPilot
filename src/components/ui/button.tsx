@@ -18,7 +18,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         hero: "bg-electric-gradient text-electric-foreground shadow-glow hover:brightness-110 hover:-translate-y-px transition-all",
         navy: "bg-navy text-navy-foreground shadow-soft hover:bg-navy-soft",
-        glass: "border border-navy-foreground/20 bg-navy-foreground/10 text-navy-foreground backdrop-blur hover:bg-navy-foreground/20",
+        glass:
+          "border border-navy-foreground/20 bg-navy-foreground/10 text-navy-foreground backdrop-blur hover:bg-navy-foreground/20",
         soft: "bg-electric-soft text-accent-foreground hover:bg-accent/80",
       },
       size: {

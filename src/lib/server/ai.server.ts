@@ -1,5 +1,12 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { APICallError, NoObjectGeneratedError, Output, jsonSchema, streamText, type ModelMessage } from "ai";
+import {
+  APICallError,
+  NoObjectGeneratedError,
+  Output,
+  jsonSchema,
+  streamText,
+  type ModelMessage,
+} from "ai";
 import { createLovableAiGatewayRunIdFetch } from "./run-id.server";
 
 export const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1";
@@ -54,12 +61,25 @@ export function toAiError(error: unknown): AiError {
       : typeof (error as { statusCode?: number })?.statusCode === "number"
         ? (error as { statusCode: number }).statusCode
         : 500;
-  if (status === 402) return new AiError("ClassPilot AI is out of AI credits right now. Please tell your administrator.", 402);
-  if (status === 429) return new AiError("ClassPilot AI is busy. Please wait a moment and try again.", 429);
-  if (status === 403) return new AiError("This AI request was declined. Try rephrasing your notes or question.", 403);
-  if (status === 400) return new AiError("The AI couldn't process that content. Try a shorter or simpler input.", 400);
-  console.error("AI error", error);
-  return new AiError("The AI request failed. Your work is safe — please try again.", status >= 400 ? status : 500);
+  if (status === 402)
+    return new AiError(
+      "ClassPilot AI is out of AI credits right now. Please tell your administrator.",
+      402,
+    );
+  if (status === 429)
+    return new AiError("ClassPilot AI is busy. Please wait a moment and try again.", 429);
+  if (status === 403)
+    return new AiError("This AI request was declined. Try rephrasing your notes or question.", 403);
+  if (status === 400)
+    return new AiError(
+      "The AI couldn't process that content. Try a shorter or simpler input.",
+      400,
+    );
+  console.error("AI request failed", status);
+  return new AiError(
+    "The AI request failed. Your work is safe — please try again.",
+    status >= 400 ? status : 500,
+  );
 }
 
 type StructuredArgs = {
@@ -72,7 +92,13 @@ type StructuredArgs = {
 };
 
 /** Streams a structured-output call and returns the parsed object. */
-export async function aiStructured<T>({ instructions, messages, schema, effort = "low", signal }: StructuredArgs): Promise<T> {
+export async function aiStructured<T>({
+  instructions,
+  messages,
+  schema,
+  effort = "low",
+  signal,
+}: StructuredArgs): Promise<T> {
   const { provider } = createAiProvider();
   try {
     const result = streamText({

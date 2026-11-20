@@ -1,4 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type { Json } from "@/integrations/supabase/types";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { createFileRoute, useNavigate, useBlocker } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -9,6 +12,16 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/study-guides/$id")({ component: Page });
 function Page() {
   const { id } = Route.useParams();
+  return <Guide key={id} id={id} />;
+}
+function Guide({ id }: { id: string }) {
+  const [draft, setDraft] = useState<{ title: string; overview: string; summary: string } | null>(
+    null,
+  );
+  useBlocker({
+    shouldBlockFn: () => !!draft && !confirm("Discard unsaved guide edits?"),
+    enableBeforeUnload: !!draft,
+  });
   const qc = useQueryClient();
   const nav = useNavigate();
   const regenerate = useServerFn(regenerateStudyGuide);
@@ -53,6 +66,29 @@ function Page() {
   if (q.isLoading) return <p>Loading guide…</p>;
   if (q.isError || !q.data) return <p>Couldn't load this guide.</p>;
   const g = q.data.content as unknown as StudyGuideContent;
+  async function saveEdits() {
+    if (!draft?.title.trim()) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase
+        .from("study_guides")
+        .update({
+          title: draft.title.trim(),
+          content: { ...g, ...draft, title: draft.title.trim() } as unknown as Json,
+        })
+        .eq("id", id)
+        .select("id")
+        .single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["study-guides"] });
+      setDraft(null);
+      toast.success("Guide saved");
+    } catch {
+      toast.error("Could not save. Your edits are still here.");
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <article className="space-y-8">
       <div className="flex flex-wrap justify-between gap-4">
@@ -61,10 +97,23 @@ function Page() {
           <h1 className="mt-2 font-display text-3xl font-bold">{q.data.title}</h1>
         </div>
         <div className="no-print flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            disabled={busy || !!draft}
+            onClick={() =>
+              setDraft({
+                title: q.data!.title,
+                overview: g.overview ?? "",
+                summary: g.summary ?? "",
+              })
+            }
+          >
+            Edit guide
+          </Button>
           <Button variant="outline" onClick={() => window.print()}>
             Print
           </Button>
-          <Button variant="outline" disabled={busy || !q.data.note_id} onClick={regen}>
+          <Button variant="outline" disabled={busy || !!draft || !q.data.note_id} onClick={regen}>
             Regenerate
           </Button>
           <Button variant="outline" disabled={busy} onClick={remove}>
@@ -72,6 +121,39 @@ function Page() {
           </Button>
         </div>
       </div>
+      {draft && (
+        <fieldset disabled={busy} className="space-y-3 rounded-xl border bg-card p-4 no-print">
+          <legend>Edit study guide</legend>
+          <label className="block">
+            Title
+            <Input
+              maxLength={200}
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            />
+          </label>
+          <label className="block">
+            Overview
+            <Textarea
+              value={draft.overview}
+              onChange={(e) => setDraft({ ...draft, overview: e.target.value })}
+            />
+          </label>
+          <label className="block">
+            Summary
+            <Textarea
+              value={draft.summary}
+              onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
+            />
+          </label>
+          <Button disabled={!draft.title.trim()} onClick={saveEdits}>
+            Save edits
+          </Button>{" "}
+          <Button variant="outline" onClick={() => setDraft(null)}>
+            Cancel
+          </Button>
+        </fieldset>
+      )}
       {g.overview && (
         <section>
           <h2 className="text-xl font-bold">Overview</h2>

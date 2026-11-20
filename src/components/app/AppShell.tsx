@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
@@ -63,10 +64,12 @@ const NAV = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-function NavLinks() {
+function NavLinks({ admin }: { admin: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { setOpenMobile } = useSidebar();
-  const items = NAV;
+  const items = admin
+    ? [...NAV, { to: "/admin" as const, label: "Administration", icon: Settings }]
+    : NAV;
   return (
     <SidebarMenu>
       {items.map((item) => {
@@ -94,12 +97,22 @@ export function AppShell({ children }: { children: ReactNode }) {
     (me?.profile?.first_name?.[0] ?? "") + (me?.profile?.last_name?.[0] ?? "") || "CP";
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Could not sign out. Please retry.");
+      return;
+    }
     navigate({ to: "/" });
   };
 
   return (
     <SidebarProvider>
+      <a
+        href="#workspace"
+        className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-card focus:p-3"
+      >
+        Skip to workspace
+      </a>
       <Sidebar collapsible="icon" className="no-print">
         <SidebarHeader className="px-3 pt-4 pb-2">
           <Link to="/dashboard" className="flex items-center gap-2.5 overflow-hidden">
@@ -113,7 +126,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SidebarGroup>
             <SidebarGroupLabel>Learn</SidebarGroupLabel>
             <SidebarGroupContent>
-              <NavLinks />
+              <NavLinks admin={!!me?.isAdmin} />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
@@ -163,7 +176,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8 md:py-8">
+        <main
+          id="workspace"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8 md:py-8"
+        >
           {meError ? (
             <div role="alert" className="rounded-xl border p-6">
               <p>Couldn’t load your account. Check your connection and try again.</p>

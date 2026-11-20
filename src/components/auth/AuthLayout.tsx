@@ -15,7 +15,8 @@ export function AuthLayout({ children, aside }: { children: ReactNode; aside?: R
           {aside ?? (
             <>
               <h2 className="text-4xl font-bold leading-tight">
-                Your classes. Your notes. <span className="text-gradient-electric">Your success.</span>
+                Your classes. Your notes.{" "}
+                <span className="text-gradient-electric">Your success.</span>
               </h2>
               <ul className="mt-8 space-y-3 text-navy-foreground/80">
                 {[
@@ -32,14 +33,17 @@ export function AuthLayout({ children, aside }: { children: ReactNode; aside?: R
           )}
         </div>
         <p className="relative mt-12 text-xs text-navy-foreground/50">
-          Built for West Des Moines Community Schools students in grades 7–12. Not affiliated with or endorsed by WDMCS.
+          Built for West Des Moines Community Schools students in grades 7–12. Not affiliated with
+          or endorsed by WDMCS.
         </p>
       </div>
       <div className="flex flex-col px-5 py-8 sm:px-10">
         <Link to="/" className="mb-8 lg:hidden">
           <Logo />
         </Link>
-        <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center">{children}</div>
+        <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center">
+          {children}
+        </div>
       </div>
     </div>
   );

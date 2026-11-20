@@ -17,7 +17,13 @@ export function LogoMark({ className }: { className?: string }) {
         fill="var(--navy-foreground)"
         opacity="0.95"
       />
-      <path d="M24 31.7v6.4" stroke="var(--navy)" strokeWidth="1.4" strokeLinecap="round" opacity="0.55" />
+      <path
+        d="M24 31.7v6.4"
+        stroke="var(--navy)"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
       {/* graduation cap */}
       <path d="M24 10.5 9.5 17.2 24 23.9l14.5-6.7z" fill="var(--navy-foreground)" />
       <path
@@ -25,14 +31,25 @@ export function LogoMark({ className }: { className?: string }) {
         fill="var(--navy-foreground)"
         opacity="0.82"
       />
-      <path d="M36.6 18.2v6.4" stroke="var(--navy-foreground)" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M36.6 18.2v6.4"
+        stroke="var(--navy-foreground)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
       {/* AI spark */}
       <circle cx="36.6" cy="26.2" r="2.3" fill="var(--highlight)" />
     </svg>
   );
 }
 
-export function Logo({ className, tone = "dark" }: { className?: string; tone?: "dark" | "light" }) {
+export function Logo({
+  className,
+  tone = "dark",
+}: {
+  className?: string;
+  tone?: "dark" | "light";
+}) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <LogoMark />

@@ -12,6 +12,8 @@ export const Route = createFileRoute("/_authenticated/resources")({ component: R
 function Resources() {
   const [topic, setTopic] = useState("");
   const [results, setResults] = useState<LearningResource[] | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [resultTopic, setResultTopic] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const search = useServerFn(findResources);
@@ -37,6 +39,7 @@ function Resources() {
         setError(res.error);
         return;
       }
+      setResultTopic(topic.trim());
       setResults(res.data.resources);
     } catch {
       setError("Couldn't search right now. Please try again.");
@@ -45,6 +48,8 @@ function Resources() {
     }
   }
   async function save(r: LearningResource) {
+    if (saving) return;
+    setSaving(r.url);
     try {
       const user = await currentUserId();
       const { error } = await supabase.from("saved_resources").insert({
@@ -54,13 +59,15 @@ function Resources() {
         description: r.description,
         source: r.source,
         kind: r.kind,
-        topic: topic.trim(),
+        topic: resultTopic,
       });
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["saved-resources"] });
       toast.success("Resource saved");
     } catch {
       toast.error("Couldn't save resource.");
+    } finally {
+      setSaving(null);
     }
   }
   async function remove(id: string) {
@@ -119,8 +126,18 @@ function Resources() {
                     {r.source} · {r.kind}
                   </p>
                   <p className="mt-2 text-sm">{r.description}</p>
-                  <Button className="mt-3" variant="outline" size="sm" onClick={() => save(r)}>
-                    Save resource
+                  <Button
+                    className="mt-3"
+                    variant="outline"
+                    size="sm"
+                    disabled={!!saving || saved.data?.some((x) => x.url === r.url)}
+                    onClick={() => save(r)}
+                  >
+                    {saved.data?.some((x) => x.url === r.url)
+                      ? "Saved"
+                      : saving === r.url
+                        ? "Saving…"
+                        : "Save resource"}
                   </Button>
                 </div>
               ))}

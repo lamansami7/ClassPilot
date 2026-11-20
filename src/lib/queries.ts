@@ -1,3 +1,4 @@
+import { matchesCampus, reconcileListing } from "./catalog";
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -77,15 +78,15 @@ export const myCoursesQuery = queryOptions({
           .map((n) => n.updated_at)
           .sort()
           .at(-1) ?? null;
-      return { ...c, noteCount: mine.length, lastActivity: last };
+      return { ...reconcileListing(c), noteCount: mine.length, lastActivity: last };
     });
   },
 });
 
 /** Active catalog courses for a grade (public read). */
-export const catalogQuery = (grade: number | null) =>
+export const catalogQuery = (grade: number | null, campus?: string) =>
   queryOptions({
-    queryKey: ["catalog", grade],
+    queryKey: ["catalog", grade, campus],
     enabled: !!grade,
     queryFn: async (): Promise<Course[]> => {
       const { data, error } = await supabase
@@ -93,10 +94,11 @@ export const catalogQuery = (grade: number | null) =>
         .select("*")
         .eq("active", true)
         .eq("is_custom", false)
-        .contains("grades", [grade!])
         .order("course_name");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? [])
+        .map(reconcileListing)
+        .filter((course) => course.grades.includes(grade!) && matchesCampus(course, campus));
     },
     staleTime: 5 * 60_000,
   });

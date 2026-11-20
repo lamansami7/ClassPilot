@@ -21,6 +21,10 @@ export const SUBJECTS = [
   "Computer Science / Technology",
   "Physical Education / Health",
   "Fine Arts",
+  "Business Education",
+  "Engineering Technology",
+  "Family and Consumer Science",
+  "Music",
   "Electives",
   "Other",
 ] as const;

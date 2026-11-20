@@ -41,7 +41,9 @@ function ForgotPage() {
         <div className="text-center">
           <MailCheck className="mx-auto h-12 w-12 text-electric" />
           <h1 className="mt-4 text-2xl font-bold text-navy">Check your email</h1>
-          <p className="mt-2 text-muted-foreground">If an account exists for {email}, a reset link is on its way.</p>
+          <p className="mt-2 text-muted-foreground">
+            If an account exists for {email}, a reset link is on its way.
+          </p>
           <Button asChild variant="outline" className="mt-6">
             <Link to="/login">Back to log in</Link>
           </Button>
@@ -49,11 +51,20 @@ function ForgotPage() {
       ) : (
         <>
           <h1 className="text-3xl font-bold text-navy">Forgot your password?</h1>
-          <p className="mt-2 text-muted-foreground">Enter your school email and we'll send you a reset link.</p>
+          <p className="mt-2 text-muted-foreground">
+            Enter your school email and we'll send you a reset link.
+          </p>
           <form onSubmit={submit} className="mt-8 space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">School email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="h-11" />
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-11"
+              />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" variant="hero" size="xl" className="w-full" disabled={loading}>

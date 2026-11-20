@@ -15,14 +15,16 @@ function Notes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notes")
-        .select("id,title,topic,updated_at")
+        .select("id,title,topic,updated_at,folders(name)")
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
   const filtered = notes.data?.filter((n) =>
-    `${n.title} ${n.topic ?? ""}`.toLowerCase().includes(search.toLowerCase()),
+    `${n.title} ${n.topic ?? ""} ${n.folders?.name ?? ""}`
+      .toLowerCase()
+      .includes(search.toLowerCase()),
   );
   return (
     <div>
@@ -43,7 +45,7 @@ function Notes() {
       </div>
       <Input
         aria-label="Search notes"
-        placeholder="Search notes by title or topic"
+        placeholder="Search title, topic or folder"
         className="mt-8 max-w-md"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -67,6 +69,9 @@ function Notes() {
             >
               <div>
                 <p className="font-semibold">{n.title}</p>
+                {n.folders && (
+                  <p className="text-xs text-muted-foreground">Folder · {n.folders.name}</p>
+                )}
                 {n.topic && <p className="mt-1 text-sm text-muted-foreground">{n.topic}</p>}
               </div>
               <span className="shrink-0 text-xs text-muted-foreground">

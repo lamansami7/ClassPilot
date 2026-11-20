@@ -20,6 +20,20 @@ export function PracticePage({ kind, id }: { kind: "quiz" | "worksheet"; id: str
       return data;
     },
   });
+  const history = useQuery({
+    queryKey: ["practice-history", kind, id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("activity")
+        .select("id,description,created_at")
+        .eq("ref_id", id)
+        .eq("activity_type", kind + "_completed")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data;
+    },
+  });
   const [answers, setAnswers] = useState<Answers>({});
   const [result, setResult] = useState<PracticeResults | null>(null);
   const [retaking, setRetaking] = useState(false);
@@ -28,6 +42,7 @@ export function PracticePage({ kind, id }: { kind: "quiz" | "worksheet"; id: str
   const qc = useQueryClient();
   const navigate = useNavigate();
   async function submit() {
+    if (!Object.keys(answers).length) return;
     setBusy(true);
     try {
       const res = await grade({ data: { kind, id, answers } });
@@ -37,6 +52,7 @@ export function PracticePage({ kind, id }: { kind: "quiz" | "worksheet"; id: str
       }
       setResult(res.data);
       await qc.invalidateQueries({ queryKey: [table, id] });
+      await history.refetch();
       toast.success("Results saved");
     } catch {
       toast.error("Couldn't grade this attempt. Your answers are still here.");
@@ -93,6 +109,11 @@ export function PracticePage({ kind, id }: { kind: "quiz" | "worksheet"; id: str
             Retake
           </Button>
         </div>
+      )}
+      {shownResult && shownResult.weak_topics.length > 0 && (
+        <p className="rounded-xl border p-4">
+          Topics to review: {shownResult.weak_topics.join(", ")}
+        </p>
       )}
       {questions.map((q, i) => {
         const r = shownResult?.results.find((x) => x.id === q.id);
@@ -178,11 +199,31 @@ export function PracticePage({ kind, id }: { kind: "quiz" | "worksheet"; id: str
         );
       })}
       {!shownResult && (
-        <Button onClick={submit} disabled={busy}>
+        <Button onClick={submit} disabled={busy || !Object.keys(answers).length}>
           {busy ? "Grading…" : "Submit answers"}
         </Button>
       )}
-      <p className="text-xs text-muted-foreground">Only the latest attempt is saved.</p>
+      <details className="rounded-xl border bg-card p-4">
+        <summary className="cursor-pointer font-semibold">Attempt history</summary>
+        <p className="my-3 text-sm text-muted-foreground">
+          Your last 20 scores. Detailed feedback is available for the latest attempt.
+        </p>
+        {history.isLoading ? (
+          "Loading scores…"
+        ) : history.isError ? (
+          <button onClick={() => history.refetch()}>Retry loading scores</button>
+        ) : history.data?.length ? (
+          <ul className="divide-y">
+            {history.data.map((a) => (
+              <li className="py-2" key={a.id}>
+                {a.description} · {new Date(a.created_at).toLocaleString()}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          "No attempts yet."
+        )}
+      </details>
     </div>
   );
 }
