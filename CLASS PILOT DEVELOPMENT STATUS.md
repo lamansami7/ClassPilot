@@ -41,4 +41,4 @@ Attach or open this same repository as a local Codex project/checkout so the exi
 ## Commits
 
 - Audit document: `e023f4f61ae6fa2613b415339a2b34f32e6e4e0f` — `docs: audit ClassPilot baseline and remaining work`.
-- Status document: record the commit SHA after creation.
+- Status document creation commit: `3b5b9192235f2ce0968343372da8c5cfb6bb8b2c`.
