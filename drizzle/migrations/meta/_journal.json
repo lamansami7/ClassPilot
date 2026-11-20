@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1795136584763,
+      "tag": "0000_classpilot_core_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795136762062,
+      "tag": "0001_seed_wdmcs_catalog_and_admin",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795136782191,
+      "tag": "0002_storage_policies",
+      "breakpoints": true
+    }
+  ]
 }

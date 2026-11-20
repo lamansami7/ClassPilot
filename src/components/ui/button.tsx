@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -16,12 +16,21 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        hero: "bg-electric-gradient text-electric-foreground shadow-glow hover:brightness-110 hover:-translate-y-px transition-all",
+        navy: "bg-navy text-navy-foreground shadow-soft hover:bg-navy-soft",
+        glass: "border border-navy-foreground/20 bg-navy-foreground/10 text-navy-foreground backdrop-blur hover:bg-navy-foreground/20",
+        soft: "bg-electric-soft text-accent-foreground hover:bg-accent/80",
       },
       size: {
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
+        "icon-sm": "h-8 w-8",
+        "icon-xs": "h-6 w-6 rounded-md [&_svg]:size-3",
+        "icon-lg": "h-10 w-10",
+        xl: "h-12 rounded-xl px-7 text-base",
+        xs: "h-6 gap-1 rounded-md px-2 text-xs",
       },
     },
     defaultVariants: {
