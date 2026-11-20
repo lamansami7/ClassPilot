@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
 });
 
 const FEATURES = [
-  { icon: NotebookPen, title: "Notes for every class", text: "Type, paste or upload PDFs, Word docs and photos of handwritten notes — organized by class, folder and topic." },
+  { icon: NotebookPen, title: "Notes for every class", text: "Type or paste your notes, organize them by class and topic, and revisit them before your next test." },
   { icon: Wand2, title: "Improve My Notes", text: "AI fixes grammar, adds headings and highlights key definitions. You review every change before it's applied." },
   { icon: Mic, title: "Record & transcribe", text: "Record a lesson (with permission) and turn the transcript into clean, organized notes." },
   { icon: BookOpenText, title: "Instant study guides", text: "Concepts, definitions, worked examples, common mistakes and review questions — at your grade level." },
@@ -71,7 +71,7 @@ function Welcome() {
               </Button>
             </div>
             <p className="mt-6 flex items-center gap-2 text-sm text-navy-foreground/55">
-              <Lock className="h-4 w-4" /> Private by default. Your notes are never used to train AI.
+              <Lock className="h-4 w-4" /> Your study materials are private to your account.
             </p>
           </div>
 

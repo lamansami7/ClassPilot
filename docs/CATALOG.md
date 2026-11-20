@@ -1,0 +1,7 @@
+## District catalog check · November 20, 2026
+
+Sources: [district feeder schools](https://www.wdmcs.org/enroll/boundaries), [registration](https://courses.wdmcs.org/registration-resources), [grade 7](https://courses.wdmcs.org/junior-high-courses/seventh-grade), [grade 8](https://courses.wdmcs.org/junior-high-courses/eighth-grade), [Valley/Southwoods departments](https://courses.wdmcs.org/courses-listed-by-department). Catalog year: 2026–27.
+
+The five seeded campuses correspond to the district feeder/alternative schools: Indian Hills and Stilwell (7–8), Valley Southwoods (9), Valley (10–12), Walnut Creek (alternative, 9–12). Compared the 36 junior-high seed titles and grade arrays against both junior-high listing pages. The two Spanish immersion social studies classes are Stilwell-only, despite the seed's generic Junior High school field. Orchestra is offered at both with different course codes. Qualified supports are not automatic placements.
+
+The Valley/Southwoods department index is not a Walnut Creek catalog. Walnut Creek students register directly with their counselor. The picker no longer treats generic high school rows as Walnut Creek offerings. High school titles, descriptions, prerequisites and individual campus placements have not all been independently reconciled. Do not infer prerequisites from titles or promote the seed as a complete current schedule. Changes filter public catalog choices without altering existing student-owned class associations.

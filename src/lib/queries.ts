@@ -1,3 +1,4 @@
+import { matchesCampus } from "./catalog";
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -83,9 +84,9 @@ export const myCoursesQuery = queryOptions({
 });
 
 /** Active catalog courses for a grade (public read). */
-export const catalogQuery = (grade: number | null) =>
+export const catalogQuery = (grade: number | null, campus?: string) =>
   queryOptions({
-    queryKey: ["catalog", grade],
+    queryKey: ["catalog", grade, campus],
     enabled: !!grade,
     queryFn: async (): Promise<Course[]> => {
       const { data, error } = await supabase
@@ -96,7 +97,7 @@ export const catalogQuery = (grade: number | null) =>
         .contains("grades", [grade!])
         .order("course_name");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).filter((course) => matchesCampus(course, campus));
     },
     staleTime: 5 * 60_000,
   });

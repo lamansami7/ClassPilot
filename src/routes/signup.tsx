@@ -66,9 +66,10 @@ function SignupPage() {
   const [done, setDone] = useState(false);
 
   const { data: schools = [] } = useQuery(schoolsQuery);
-  const { data: catalog = [] } = useQuery(catalogQuery(grade));
   const gradeSchools = useMemo(() => schools.filter((s) => grade && s.grades_supported.includes(grade)), [schools, grade]);
   const school = schools.find((s) => s.id === schoolId);
+
+  const { data: catalog = [] } = useQuery(catalogQuery(grade, school?.name));
 
   const next = async () => {
     setError(null);
@@ -251,7 +252,7 @@ function SignupPage() {
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => setSchoolId(s.id)}
+                  onClick={() => { if (schoolId !== s.id) setClasses({ courseIds: [], customCourses: [] }); setSchoolId(s.id); }}
                   className={cn(
                     "flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all",
                     schoolId === s.id ? "border-electric bg-electric-soft shadow-soft" : "bg-card hover:border-electric/40",
@@ -276,7 +277,7 @@ function SignupPage() {
           <>
             <h1 className="text-3xl font-bold text-navy">Pick your classes</h1>
             <p className="mt-2 mb-6 text-muted-foreground">From the official WDMCS course catalog for {gradeLabel(grade)}. Select as many as you're taking.</p>
-            <CoursePicker grade={grade} value={classes} onChange={setClasses} />
+            <CoursePicker campus={school?.name} grade={grade} value={classes} onChange={setClasses} />
           </>
         )}
 

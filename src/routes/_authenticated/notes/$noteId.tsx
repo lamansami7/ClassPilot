@@ -77,8 +77,8 @@ function NoteEditor({ noteId }: { noteId: string }) {
       if (error) throw error;
       qc.setQueryData(["note", noteId], data);
       await qc.invalidateQueries({ queryKey: ["notes"] });
-      setInitialized(false);
-      toast.success("Note saved");
+      setTitle((latest) => latest === title ? data.title : latest);
+      setTopic((latest) => latest === topic ? data.topic ?? "" : latest);
     } catch {
       setSaveFailed(true);
       toast.error("Couldn't save. Your changes remain in the editor; please retry.");
@@ -163,7 +163,6 @@ function NoteEditor({ noteId }: { noteId: string }) {
       <label className="block text-sm font-medium">
         Title
         <Input
-          disabled={busy}
           className="mt-2"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -172,7 +171,6 @@ function NoteEditor({ noteId }: { noteId: string }) {
       <label className="block text-sm font-medium">
         Topic
         <Input
-          disabled={busy}
           className="mt-2"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
@@ -181,7 +179,6 @@ function NoteEditor({ noteId }: { noteId: string }) {
       <label className="block text-sm font-medium">
         Notes
         <Textarea
-          disabled={busy}
           className="mt-2 min-h-[420px] resize-y"
           value={content}
           onChange={(e) => setContent(e.target.value)}

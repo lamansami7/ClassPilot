@@ -15,14 +15,16 @@ export function CoursePicker({
   grade,
   value,
   onChange,
+  campus,
   allowCustom = true,
 }: {
   grade: number;
+  campus?: string;
   value: CoursePickerValue;
   onChange: (v: CoursePickerValue) => void;
   allowCustom?: boolean;
 }) {
-  const { data: courses = [], isLoading, error } = useQuery(catalogQuery(grade));
+  const { data: courses = [], isLoading, error, refetch } = useQuery(catalogQuery(grade, campus));
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState<string>("All");
   const [custom, setCustom] = useState("");
@@ -53,7 +55,7 @@ export function CoursePicker({
   };
   const addCustom = () => {
     const name = custom.trim();
-    if (name.length < 2 || value.customCourses.includes(name)) return;
+    if (name.length < 2 || value.customCourses.length >= 10 || value.customCourses.some((c) => c.toLowerCase() === name.toLowerCase())) return;
     onChange({ ...value, customCourses: [...value.customCourses, name] });
     setCustom("");
   };
@@ -62,16 +64,17 @@ export function CoursePicker({
 
   return (
     <div className="space-y-4">
+      <p className="rounded-xl bg-muted p-3 text-sm">{campus} · Grade {grade}. {campus === "Walnut Creek Campus" ? "Work with your counselor and enter classes from your schedule." : "Campus availability and prerequisites are not independently verified for each listing."} <a href="https://courses.wdmcs.org/" target="_blank" rel="noreferrer" className="font-medium text-electric underline">Check district catalog ↗</a></p>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search classes, e.g. Biology or Algebra" className="h-11 pl-9" />
+        <Input aria-label="Search courses" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search classes, e.g. Biology or Algebra" className="h-11 pl-9" />
       </div>
       <div className="flex flex-wrap gap-2">
         {["All", ...subjectsPresent].map((s) => (
           <button
             key={s}
             type="button"
-            onClick={() => setSubject(s)}
+            aria-pressed={subject === s} onClick={() => setSubject(s)}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
               subject === s ? "border-electric bg-electric text-electric-foreground" : "bg-card hover:border-electric/50",
@@ -105,8 +108,8 @@ export function CoursePicker({
 
       <div className="max-h-[420px] space-y-5 overflow-y-auto rounded-xl border bg-card p-3">
         {isLoading && <p className="p-4 text-sm text-muted-foreground">Loading the WDMCS course catalog…</p>}
-        {error && <p className="p-4 text-sm text-destructive">Couldn't load courses. Please refresh.</p>}
-        {!isLoading && !grouped.length && <p className="p-4 text-sm text-muted-foreground">No classes match your search. You can add it manually below.</p>}
+        {error && <p className="p-4 text-sm text-destructive">Couldn't load courses. <button type="button" className="underline" onClick={() => refetch()}>Retry</button></p>}
+        {!error && !isLoading && !grouped.length && <p className="p-4 text-sm text-muted-foreground">No classes match your search. You can add it manually below.</p>}
         {grouped.map(([subj, list]) => {
           const Icon = subjectIcon(subj);
           return (
@@ -121,7 +124,7 @@ export function CoursePicker({
                     <button
                       key={c.id}
                       type="button"
-                      onClick={() => toggle(c.id)}
+                      aria-pressed={on} onClick={() => toggle(c.id)}
                       className={cn(
                         "flex items-start gap-3 rounded-lg border p-3 text-left transition-all",
                         on ? "border-electric bg-electric-soft shadow-soft" : "hover:border-electric/40 hover:bg-muted/50",
@@ -164,7 +167,7 @@ export function CoursePicker({
               placeholder="e.g. Honors Chemistry"
               maxLength={120}
             />
-            <Button type="button" variant="outline" onClick={addCustom}>
+            <Button type="button" variant="outline" disabled={custom.trim().length < 2 || value.customCourses.length >= 10 || value.customCourses.some((c) => c.toLowerCase() === custom.trim().toLowerCase())} onClick={addCustom}>
               <Plus /> Add
             </Button>
           </div>
