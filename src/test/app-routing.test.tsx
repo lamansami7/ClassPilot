@@ -29,6 +29,9 @@ describe("App routing", () => {
     "/recordings",
     "/resources",
     "/settings",
+    "/admin",
+    "/forgot-password",
+    "/reset-password",
   ])("matches %s instead of falling back to not found", (path) => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
 

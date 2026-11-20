@@ -19,7 +19,7 @@ export function CoursePicker({
   allowCustom = true,
 }: {
   grade: number;
-  campus?: string;
+  campus?: string | undefined;
   value: CoursePickerValue;
   onChange: (v: CoursePickerValue) => void;
   allowCustom?: boolean;

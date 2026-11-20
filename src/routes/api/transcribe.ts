@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/transcribe")({
         const auth = await authenticateRequest(request);
         if (!auth) return jsonError("Please sign in again.", 401);
         const declared = Number(request.headers.get("content-length") ?? "0");
-        if (declared > MAX_BYTES) return jsonError("That audio segment is too large.", 413);
+        if (declared > MAX_BYTES + 65536) return jsonError("That audio segment is too large.", 413);
         try {
           await prepareAiRequest(auth.supabase, auth.userId, "transcribe");
         } catch (e) {
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/api/transcribe")({
         upstream.append("model", TRANSCRIBE_MODEL);
         upstream.append("file", file, file.name || "segment.wav");
         upstream.append("response_format", "json");
-        upstream.append("stream", "true");
+
         const res = await fetch(`${AI_GATEWAY_URL}/audio/transcriptions`, {
           method: "POST",
           headers: { Authorization: `Bearer ${key}` },
@@ -49,7 +49,7 @@ export const Route = createFileRoute("/api/transcribe")({
         }
         return new Response(res.body, {
           status: res.status,
-          headers: { "content-type": res.headers.get("content-type") ?? "text/event-stream" },
+          headers: { "content-type": res.headers.get("content-type") ?? "application/json" },
         });
       },
     },

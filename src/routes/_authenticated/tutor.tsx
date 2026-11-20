@@ -216,7 +216,7 @@ function Chat({ id, initial }: { id: string; initial: UIMessage[] }) {
         }}
       >
         <Textarea
-          aria-label="Message the tutor"
+          maxLength={12000} aria-label="Message the tutor"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question…"
