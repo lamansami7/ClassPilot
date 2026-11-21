@@ -40,11 +40,10 @@ function Dashboard() {
         <p className="text-sm font-medium opacity-75">YOUR STUDY SPACE</p>
         <h1 className="mt-3 font-display text-3xl font-bold md:text-4xl">
           {greeting()}
-          {me?.profile?.first_name ? `, ${me.profile.first_name}` : ""}.
+          {me?.profile?.first_name ? `, ${me.profile.first_name}` : ""}!
         </h1>
         <p className="mt-3 max-w-xl text-sm opacity-80">
-          Your classes and notes, all in one place. Pick up where you left off or start something
-          new.
+          Ready to learn something new today?
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Button asChild variant="hero">
@@ -52,7 +51,7 @@ function Dashboard() {
               <NotebookPen /> My notes
             </Link>
           </Button>
-          <Button asChild variant="outline">
+          <Button asChild variant="glass">
             <Link to="/classes">
               <GraduationCap /> My classes
             </Link>
